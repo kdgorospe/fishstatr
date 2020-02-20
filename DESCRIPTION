@@ -2,8 +2,7 @@ Package: fishstatrpackage
 Type: Package
 Title: Cleans FAO's FishStatJ Data
 Version: 0.0.0.9000
-Author: Kelvin D. Gorospe
-Maintainer: kdgorospe@gmail.com
+Author@R: person("Kelvin", "Gorospe", email = "kdgorospe@gmail.com", role = c("aut", "cre"))
 Description: Takes downloaded FishStatJ Global Fishery and Aquaculture Production data,
     cleans the time series data and makes it "tidy" (i.e., long format).
 License: CC0

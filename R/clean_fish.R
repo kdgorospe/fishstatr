@@ -1,6 +1,13 @@
 #path_to_file<-"C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Global Fishery and Aquaculture Production Statistics.csv"
 #path_to_file<-"~/OneDrive - american.edu/FAO Global Fishery and Aquaculture Production Statistics.csv"
 
+#' Takes downloaded FishStatJ Global Fishery and Aquaculture Production data, cleans the time series data and makes it "tidy" (i.e., long format).
+
+#' @param path_to_file Path to FAO data
+#' @return A cleaned, tidy dataset
+#' @example
+#' clean_fish("~/OneDrive - american.edu/FAO Global Fishery and Aquaculture Production Statistics.csv")
+
 clean_fish<-function(path_to_file){
   check_pkg_deps() # packages are automatically loaded, but will show error message if one of the needs to be installed
   fish_file<-read.csv(path_to_file)
