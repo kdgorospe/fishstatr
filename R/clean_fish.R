@@ -1,4 +1,4 @@
-#' Cleans FAO's Global Fishery and Aquaculture Production Data
+#' Cleans FAO's Fishery and Aquaculture Production Data
 #'
 #' \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 

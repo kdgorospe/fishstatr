@@ -2,16 +2,20 @@
 % Please edit documentation in R/clean_fish.R
 \name{clean_fish}
 \alias{clean_fish}
-\title{Takes downloaded FishStatJ Global Fishery and Aquaculture Production data, cleans the time series data and makes it "tidy" (i.e., long format).}
+\title{Cleans FAO's Fishery and Aquaculture Production Data}
 \usage{
 clean_fish(path_to_file)
 }
 \arguments{
-\item{path_to_file}{Path to FAO data}
+\item{path_to_file}{File path to FAO data}
 }
 \value{
-A cleaned, tidy dataset
+A cleaned, tidy dataset.
 }
 \description{
-Takes downloaded FishStatJ Global Fishery and Aquaculture Production data, cleans the time series data and makes it "tidy" (i.e., long format).
+\code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
+}
+\examples{
+clean_fish("~/OneDrive - american.edu/FAO Global Fishery and Aquaculture Production Statistics.csv")
+clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\FAO Global Fishery and Aquaculture Production Statistics.csv")
 }
