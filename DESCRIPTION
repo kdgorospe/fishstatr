@@ -1,4 +1,4 @@
-Package: fishstatrpackage
+Package: fishstatr
 Type: Package
 Title: Cleans FAO's FishStatJ Data
 Version: 0.0.0.9000
