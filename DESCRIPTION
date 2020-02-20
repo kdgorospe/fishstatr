@@ -12,3 +12,4 @@ Imports:
     dplyr,
     tidyr,
     stringr
+RoxygenNote: 7.0.2
