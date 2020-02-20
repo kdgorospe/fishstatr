@@ -1,11 +1,15 @@
 Package: fishstatrpackage
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Cleans FAO's FishStatJ Data
+Version: 0.0.0.9000
+Author: Kelvin D. Gorospe
+Maintainer: kdgorospe@gmail.com
+Description: Takes downloaded FishStatJ Global Fishery and Aquaculture Production data,
+    cleans the time series data and makes it "tidy" (i.e., long format).
+License: CC0
 Encoding: UTF-8
 LazyData: true
+Imports: 
+    dplyr,
+    tidyr,
+    stringr
