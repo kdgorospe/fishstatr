@@ -5,8 +5,8 @@
 #' @param path_to_file File path to FAO data
 #' @return A cleaned, tidy dataset.
 #' @examples
-#' clean_fish("~/OneDrive - american.edu/FAO Global Fishery and Aquaculture Production Statistics.csv")
-#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Global Fishery and Aquaculture Production Statistics.csv")
+#' clean_fish("~/OneDrive - american.edu/FAO Global Fishery Production Statistics.csv")
+#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Global Fishery Production Statistics.csv")
 
 clean_fish<-function(path_to_file){
   check_pkg_deps() # packages are automatically loaded, but will show error message if one of the needs to be installed
