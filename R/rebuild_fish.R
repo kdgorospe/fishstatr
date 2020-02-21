@@ -28,25 +28,28 @@ rebuild_fish<-function(path_to_folder){
   path_to_ts<-paste(path_to_folder, time_files, sep = "/")
   time_series<-read.csv(path_to_ts)
 
-  # read in code list files
+  # generate path to cl files in batch:
   #code_files<-fish_files[grep("CL", fish_files)]
   #path_to_cl<-unlist(map(path_to_folder, ~paste(.x, code_files, sep="/")))
-  # Use ds file to geerate path_to_cl
+
+  time_series_join<-time_series
+
   for i in (1:nrow(ds)){
     # TRUE/FALSE: is there a filename listed in Codelist_id?
     if(!is.na(ds$Codelist_id[i])){
+      # Use ds file to generate path_to_cl individually
       code_file_i<-paste(ds$Codelist_id[i], ".csv", sep = "")
       path_to_cl<-paste(path_to_folder, code_file_i, sep = "/")
-      cl_i<-read.csv(path_to_cl)
+      cl_i<-read.csv(path_to_cl, check.names = FALSE) # do this to prevent R from adding "X" in front of column "3Alpha_Code"
       names(cl_i)<-tolower(names(cl_i)) # convert all cl headers to lowercase
       merge_col<-tolower(ds$Codelist_Code_id[i]) # do the same to DS file's code ID so it matches with cl
 
       # Note: the following code does not work: #time_series_join<-left_join(time_series, cl_i, by = c(names(time_series)[i] = merge_col))
       # the argument "by" needs to take on the form of join_cols as shown below
-      firstname<-names(time_series)[1]
+      firstname<-names(time_series)[i]
       join_cols<-merge_col
       names(join_cols)<-firstname
-      time_series_join<-left_join(time_series, cl_i, by = join_cols)
+      time_series_join<-left_join(time_series_join, cl_i, by = join_cols)
 
 
 
