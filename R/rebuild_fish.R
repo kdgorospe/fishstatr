@@ -1,5 +1,4 @@
-rm(list=ls())
-path_to_folder<-"C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0"
+#path_to_folder<-"C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0"
 
 rebuild_fish<-function(path_to_folder){
   require(dplyr)
@@ -34,7 +33,7 @@ rebuild_fish<-function(path_to_folder){
 
   time_series_join<-time_series
 
-  for i in (1:nrow(ds)){
+  for (i in 1:nrow(ds)){
     # TRUE/FALSE: is there a filename listed in Codelist_id?
     if(!is.na(ds$Codelist_id[i])){
       # Use ds file to generate path_to_cl individually
@@ -50,23 +49,12 @@ rebuild_fish<-function(path_to_folder){
       join_cols<-merge_col
       names(join_cols)<-firstname
       time_series_join<-left_join(time_series_join, cl_i, by = join_cols)
-
-
-
-
-
     }
+    # Expected warning: Coerces from factor to character because time_series$SPECIES (nlevels=2341) and CL_FI_SPECIES_GROUPS.csv column "3alpha_code" (nlevels = 12751) have different number of factor levels
+    # Expected warning: Coerces from factor to chracter because time_series$UNIT and CL_FILE_UNIT.csv column "code" have different number of factor levels
+    # Expected warning: Coerces from factor to character because time_series$SYMBOL and CL_FI_SYMBOL.csv column "symbol" have diff number of factors
   }
 
-  cl_1<-read.csv((path_to_cl)[1]) # Need to make this flexible to length of path_to_cl
-  cl_2<-read.csv((path_to_cl)[2])
-  cl_3<-read.csv((path_to_cl)[3])
-  cl_4<-read.csv((path_to_cl)[4])
-  cl_5<-read.csv((path_to_cl)[5])
-  cl_6<-read.csv((path_to_cl)[6])
-
-  # Combine Time Series with Code Files
-  left_join(time_series, cl_1)
-
+  time_series_join
 
 }
