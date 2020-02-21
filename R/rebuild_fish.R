@@ -1,4 +1,12 @@
-#path_to_folder<-"C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0"
+#' Assembles FAO's Global Fishery and Aquaculture Production Data from scratch
+#'
+#' \code{rebuild_fish} takes all CSV files from an unzipped folder of FAO data and merges them into "tidy" (i.e., long) format
+
+#' @param path_to_folder Path to unzipped (extracted) folder of FAO data
+#' @return A merged, tidy dataset.
+#' @examples
+#' clean_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
+#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
 
 rebuild_fish<-function(path_to_folder){
   require(dplyr)

@@ -16,6 +16,6 @@ A cleaned, tidy dataset.
 \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 }
 \examples{
-clean_fish("~/OneDrive - american.edu/FAO Global Fishery and Aquaculture Production Statistics.csv")
-clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\FAO Global Fishery and Aquaculture Production Statistics.csv")
+clean_fish("~/OneDrive - american.edu/FAO Global Fishery Production Statistics.csv")
+clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\FAO Global Fishery Production Statistics.csv")
 }
