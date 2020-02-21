@@ -36,8 +36,8 @@ rebuild_fish<-function(path_to_folder){
   time_series<-read.csv(path_to_ts)
 
   # generate path to cl files in batch:
-  #code_files<-fish_files[grep("CL", fish_files)]
-  #path_to_cl<-unlist(map(path_to_folder, ~paste(.x, code_files, sep="/")))
+  code_files<-fish_files[grep("CL", fish_files)]
+  path_to_cl<-unlist(map(path_to_folder, ~paste(.x, code_files, sep="/")))
 
   time_series_join<-time_series
 
@@ -47,7 +47,14 @@ rebuild_fish<-function(path_to_folder){
       # Use ds file to generate path_to_cl individually
       code_file_i<-paste(ds$Codelist_id[i], ".csv", sep = "")
       path_to_cl<-paste(path_to_folder, code_file_i, sep = "/")
-      cl_i<-read.csv(path_to_cl, check.names = FALSE) # do this to prevent R from adding "X" in front of column "3Alpha_Code"
+      cl_i<-read.csv(path_to_cl, check.names = FALSE) # check.names = FALSE to prevent R from adding "X" in front of column "3Alpha_Code" - creates problems because this is the matching column for merging with time series
+
+      # Many CL files have "Name" as a column, also Name_En, Name_Fr, Name_Es, etc
+      # To disambiguate, append "Concept_ID" from DS file to all columns in CL that begin with "Name"
+      concept_names<-paste(ds$Concept_id[i], names(cl_i)[grep("Name", names(cl_i))], sep="_")
+      names(cl_i)[grep("Name", names(cl_i))]<-concept_names
+
+
       names(cl_i)<-tolower(names(cl_i)) # convert all cl headers to lowercase
       merge_col<-tolower(ds$Codelist_Code_id[i]) # do the same to DS file's code ID so it matches with cl
 
