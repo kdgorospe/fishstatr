@@ -1,25 +1,46 @@
 #' Assembles FAO's Global Fishery and Aquaculture Production Data from scratch
 #'
-#' \code{rebuild_fish} takes all CSV files from an unzipped folder of FAO data and merges them into "tidy" (i.e., long) format
+#' \code{rebuild_fish} Extracts data from FAO zipped file and merges them into "tidy" (i.e., long) format
 
-#' @param path_to_folder Path to unzipped (extracted) folder of FAO data
+#' @param path_to_zifile Name of zipped file of FAO data (if in current directory); otherwise, include path to file
+#' @param path_to_folder Name of unzipped (extracted) folder of FAO data (if in current directory); otherwise, include path to folder
 #' @return A merged, tidy dataset.
 #' @examples
 #' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
 #' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
 
-rebuild_fish<-function(path_to_folder){
+rebuild_fish<-function(path_to_zipfile, path_to_folder, zipped = TRUE){
+  require(tools) # needed for file_path_sans_ext
   require(dplyr)
   require(purrr)
   require(readxl) # part of tidyverse but still need to load readxl explicitly, because it is not a core tidyverse package
 
-  # list files
-  fish_files<-list.files(path_to_folder)
+  if (zipped == TRUE){
+
+    if (file.exists(basename(path_to_zipfile))){ # if file is in current directory and only file name was given
+      outdir<-getwd()
+    } else # if file is not in current directory and a path was given
+      # ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
+      outdir<-dirname(path_to_zipfile)
+    foldername<-file_path_sans_ext(basename(path_to_zipfile))
+    outfolder<-paste(outdir, foldername, sep = "/")
+    unzip(path_to_zipfile, exdir = outfolder) # Problem: if unable to unzip folder, still creates outfolder how to supress this?
+    setwd(outfolder)
+    # list files
+    fish_files<-list.files(outfolder)
+    fish_files
+  }
+
+  if (zipped == FALSE){
+    # list files
+    fish_files<-list.files(path_to_folder)
+  }
+
 
   # read .xlsx file (explains data structure of time series)
   # IMPORTANT: column ORDER (ABCDEF) in DS file should match columns ABCDEF in time series for looping to work below
   # each row gives info for how this time series column should be merged with a code list (CL) file
-  ds_file<-fish_files[grep("DS", fish_files)]
+  ds_file<-fish_files[grep("DSD", fish_files)]
   path_to_ds<-paste(path_to_folder, ds_file, sep = "/")
   ds<-read_excel(path_to_ds)
   # remove metadata rows
