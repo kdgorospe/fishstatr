@@ -16,6 +16,6 @@ A merged, tidy dataset.
 \code{rebuild_fish} takes all CSV files from an unzipped folder of FAO data and merges them into "tidy" (i.e., long) format
 }
 \examples{
-clean_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
-clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\GlobalProduction_2019.1.0")
+rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
+rebuild_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\GlobalProduction_2019.1.0")
 }
