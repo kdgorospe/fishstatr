@@ -5,8 +5,8 @@
 #' @param path_to_folder Path to unzipped (extracted) folder of FAO data
 #' @return A merged, tidy dataset.
 #' @examples
-#' clean_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
-#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
+#' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
+#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
 
 rebuild_fish<-function(path_to_folder){
   require(dplyr)
