@@ -1,43 +1,64 @@
 #' Assembles FAO's Global Fishery and Aquaculture Production Data from scratch
 #'
-#' \code{rebuild_fish} takes all CSV files from an unzipped folder of FAO data and merges them into "tidy" (i.e., long) format
+#' \code{rebuild_fish} Extracts data from FAO zipped file and merges them into "tidy" (i.e., long) format
 
-#' @param path_to_folder Path to unzipped (extracted) folder of FAO data
+#' @param path_to_zifile Name of zipped file of FAO data (if in current directory); otherwise, include path to file
+#' @param path_to_folder Name of unzipped (extracted) folder of FAO data (if in current directory); otherwise, include path to folder
 #' @return A merged, tidy dataset.
 #' @examples
-#' clean_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
-#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
+#' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
+#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
 
-rebuild_fish<-function(path_to_folder){
+rebuild_fish<-function(path_to_zipfile){
+  require(tools) # needed for file_path_sans_ext
   require(dplyr)
   require(purrr)
   require(readxl) # part of tidyverse but still need to load readxl explicitly, because it is not a core tidyverse package
 
-  # list files
-  fish_files<-list.files(path_to_folder)
+  # NEED TO FIX IDENTATION
+    if (file.exists(basename(path_to_zipfile))){ # if file is in current directory and only file name was given
+      outdir<-getwd()
+    } else # if file is not in current directory and a path was given
+      # ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
+      outdir<-dirname(path_to_zipfile)
+    foldername<-file_path_sans_ext(basename(path_to_zipfile))
+    outfolder<-paste(outdir, foldername, sep = "/")
+    unzip(path_to_zipfile, exdir = outfolder) # Problem: if unable to unzip folder, still creates outfolder how to supress this?
+    setwd(outfolder)
+    # list files
+    fish_files<-list.files(outfolder)
+
 
   # read .xlsx file (explains data structure of time series)
   # IMPORTANT: column ORDER (ABCDEF) in DS file should match columns ABCDEF in time series for looping to work below
   # each row gives info for how this time series column should be merged with a code list (CL) file
-  ds_file<-fish_files[grep("DS", fish_files)]
-  path_to_ds<-paste(path_to_folder, ds_file, sep = "/")
+  ds_file<-fish_files[grep("DSD", fish_files)]
+  path_to_ds<-paste(outfolder, ds_file, sep = "/")
   ds<-read_excel(path_to_ds)
+
   # remove metadata rows
   data_start<-grep("Order", ds[,1]) # find true header row based on column name "Order"
   colnames(ds)<-as.character(unlist(ds[data_start,]))
   ds<-ds[-1,]
+
+  # manually correct ds file's codelist ID column:
+  ds<-ds %>%
+    mutate(Codelist_Code_id = case_when(Concept_id=="SOURCE" ~ "IDENTIFIER",
+                                        Concept_id=="SYMBOL" ~ "SYMBOL",
+                                        Concept_id!="SYMBOL|SOURCE" ~ Codelist_Code_id))
+
 
   # remove non CSVs (do this to ignore "CL_History.txt" file)
   fish_files<-fish_files[grep(".csv", fish_files)]
 
   # read in time series.csv
   time_files<-fish_files[grep("TS", fish_files)]
-  path_to_ts<-paste(path_to_folder, time_files, sep = "/")
+  path_to_ts<-paste(outfolder, time_files, sep = "/")
   time_series<-read.csv(path_to_ts)
 
   # generate path to cl files in batch:
   code_files<-fish_files[grep("CL", fish_files)]
-  path_to_cl<-unlist(map(path_to_folder, ~paste(.x, code_files, sep="/")))
+  path_to_cl<-unlist(map(outfolder, ~paste(.x, code_files, sep="/")))
 
   time_series_join<-time_series
 
@@ -46,7 +67,7 @@ rebuild_fish<-function(path_to_folder){
     if(!is.na(ds$Codelist_id[i])){
       # Use ds file to generate path_to_cl individually
       code_file_i<-paste(ds$Codelist_id[i], ".csv", sep = "")
-      path_to_cl<-paste(path_to_folder, code_file_i, sep = "/")
+      path_to_cl<-paste(outfolder, code_file_i, sep = "/")
       cl_i<-read.csv(path_to_cl, check.names = FALSE) # check.names = FALSE to prevent R from adding "X" in front of column "3Alpha_Code" - creates problems because this is the matching column for merging with time series
 
       # Many CL files have "Name" as a column, also Name_En, Name_Fr, Name_Es, etc
