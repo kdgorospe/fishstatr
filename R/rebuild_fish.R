@@ -2,12 +2,11 @@
 #'
 #' \code{rebuild_fish} Extracts data from FAO zipped file and merges them into "tidy" (i.e., long) format
 
-#' @param path_to_zifile Name of zipped file of FAO data (if in current directory); otherwise, include path to file
-#' @param path_to_folder Name of unzipped (extracted) folder of FAO data (if in current directory); otherwise, include path to folder
+#' @param path_to_zipfile Name of zipped file of FAO data (if in current directory); otherwise, specify path to file
 #' @return A merged, tidy dataset.
 #' @examples
-#' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
-#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0")
+#' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0.zip")
 
 rebuild_fish<-function(path_to_zipfile){
   require(tools) # needed for file_path_sans_ext
