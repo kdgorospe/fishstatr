@@ -56,6 +56,7 @@ rebuild_fish<-function(path_to_zipfile){
   time_series<-read.csv(path_to_ts)
 
   # generate path to cl files in batch:
+  # DELETE?
   code_files<-fish_files[grep("CL", fish_files)]
   path_to_cl<-unlist(map(outfolder, ~paste(.x, code_files, sep="/")))
 
@@ -78,11 +79,28 @@ rebuild_fish<-function(path_to_zipfile){
       names(cl_i)<-tolower(names(cl_i)) # convert all cl headers to lowercase
       merge_col<-tolower(ds$Codelist_Code_id[i]) # do the same to DS file's code ID so it matches with cl
 
+
+      # If factor...
+      if(is.factor(cl_i[[merge_col]])){
+        #...Test if factor levels need to be merged?
+        if(!nlevels(cl_i[[merge_col]])==nlevels(time_series_join[[names(time_series_join)[i]]])){
+          #combined <- sort(union(time_series_join[[names(time_series_join)[i]]], levels(cl_i[[merge_col]])))
+          levels(time_series_join[[names(time_series_join)[i]]])<-levels(cl_i[[merge_col]])
+        }
+      }
+      # This avoids warnings about unequal factor levels below
+
+      # Can't just merge by column number:
+      # In Time Series, column COUNTRY, AREA, SOURCE, SPECIES, and UNIT correspond to column 1 in their respective CL files
+      # but in Time Series, column SYMBOL corresponds to column 2
+
       # Note: the following code does not work: #time_series_join<-left_join(time_series, cl_i, by = c(names(time_series)[i] = merge_col))
       # the argument "by" needs to take on the form of join_cols as shown below
-      firstname<-names(time_series)[i]
+      firstname<-names(time_series_join)[i]
       join_cols<-merge_col
       names(join_cols)<-firstname
+
+
       time_series_join<-left_join(time_series_join, cl_i, by = join_cols)
     }
     # Expected warning: Coerces from factor to character because time_series$SPECIES (nlevels=2341) and CL_FI_SPECIES_GROUPS.csv column "3alpha_code" (nlevels = 12751) have different number of factor levels
