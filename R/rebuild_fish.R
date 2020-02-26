@@ -17,9 +17,14 @@ rebuild_fish<-function(path_to_zipfile){
   # NEED TO FIX IDENTATION
     if (file.exists(basename(path_to_zipfile))){ # if file is in current directory and only file name was given
       outdir<-getwd()
-    } else # if file is not in current directory and a path was given
-      # ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
+    } else if (file.exists(path_to_zipfile)){ # if file path was given
       outdir<-dirname(path_to_zipfile)
+    } else {
+      stop("Check path_to_zipfile")
+    }
+
+      # ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
+
     foldername<-file_path_sans_ext(basename(path_to_zipfile))
     outfolder<-paste(outdir, foldername, sep = "/")
     unzip(path_to_zipfile, exdir = outfolder) # Problem: if unable to unzip folder, still creates outfolder how to supress this?
