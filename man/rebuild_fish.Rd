@@ -4,18 +4,18 @@
 \alias{rebuild_fish}
 \title{Assembles FAO's Global Fishery and Aquaculture Production Data from scratch}
 \usage{
-rebuild_fish(path_to_folder)
+rebuild_fish(path_to_zipfile)
 }
 \arguments{
-\item{path_to_folder}{Path to unzipped (extracted) folder of FAO data}
+\item{path_to_zipfile}{Name of zipped file of FAO data (if in current directory); otherwise, specify path to file}
 }
 \value{
 A merged, tidy dataset.
 }
 \description{
-\code{rebuild_fish} takes all CSV files from an unzipped folder of FAO data and merges them into "tidy" (i.e., long) format
+\code{rebuild_fish} Extracts data from FAO zipped file and merges them into "tidy" (i.e., long) format
 }
 \examples{
-rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0")
-rebuild_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\GlobalProduction_2019.1.0")
+rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0.zip")
+rebuild_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\GlobalProduction_2019.1.0.zip")
 }

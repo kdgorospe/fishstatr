@@ -8,6 +8,8 @@ clean_fish(path_to_file)
 }
 \arguments{
 \item{path_to_file}{File path to FAO data}
+
+\item{dataset}{FAO dataset}
 }
 \value{
 A cleaned, tidy dataset.
@@ -16,6 +18,6 @@ A cleaned, tidy dataset.
 \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 }
 \examples{
-clean_fish("~/OneDrive - american.edu/FAO Global Fishery Production Statistics.csv")
-clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\FAO Global Fishery Production Statistics.csv")
+clean_fish("~/OneDrive - american.edu/FAO Global capture production-QUANTITY.csv")
+clean_fish("C:\\\\Users\\\\kdgor\\\\OneDrive - american.edu\\\\FAO Global capture production-QUANTITY.csv")
 }
