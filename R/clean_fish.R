@@ -3,7 +3,7 @@
 #' \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 
 #' @param path_to_file File path to FAO data
-#' @param dataset FAO dataset (default is Commodity Unit; production and consumption datasets have alternative data download portals that are preferred to FishStatJ)
+#' @param dataset FAO dataset (default is "Commodity Unit"; production and consumption datasets have alternative data download options that are preferred over FishStatJ)
 #' @return A cleaned, tidy dataset.
 #' @examples
 #' clean_fish("~/OneDrive - american.edu/FAO Data/CommoditiesAndTrade/FishStatJFiles/FAO Fisheries commodities production and trade-QUANTITY.csv")
