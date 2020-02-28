@@ -3,12 +3,13 @@
 #' \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 
 #' @param path_to_file File path to FAO data
+#' @param dataset FAO dataset
 #' @return A cleaned, tidy dataset.
 #' @examples
 #' clean_fish("~/OneDrive - american.edu/FAO Global capture production-QUANTITY.csv")
 #' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Global capture production-QUANTITY.csv")
 
-clean_fish<-function(path_to_file){
+clean_fish<-function(path_to_file, dataset="Catch"){
   check_pkg_deps() # packages are automatically loaded, but will show error message if one of the needs to be installed
   fish_file<-read.csv(path_to_file)
   #Remove last three rows: two rows of summed tonnage and abundance + citation
@@ -36,6 +37,6 @@ clean_fish<-function(path_to_file){
                  names_to = "Year",
                  names_prefix = "X",
                  names_ptypes = list(Year=integer()),
-                 values_to = "Catch",
+                 values_to = dataset,
                  values_drop_na = TRUE) #this last option drops years with NAs
 }
