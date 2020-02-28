@@ -38,7 +38,7 @@ clean_fish<-function(path_to_file, dataset="Commodity Unit"){
 
   tmp_fish<-fish_clean_years %>%
     pivot_longer(cols = starts_with("X"),
-                 names_to = "Year",
+                 names_to = "YEAR",
                  names_prefix = "X",
                  names_ptypes = list(Year=integer()),
                  values_to = dataset,

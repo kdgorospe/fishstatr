@@ -1,4 +1,4 @@
-map_production<-function(tidy_fish, year, fish_var){
+map_production<-function(tidy_fish, year, fish_var="QUANTITY"){
   require(tidyverse)
   require(rnaturalearth)
   require(rnaturalearthdata)
@@ -9,7 +9,7 @@ map_production<-function(tidy_fish, year, fish_var){
   # For matching countries, use 3ALPHA ISO code because FAO data has separate reports for Taiwan; if matching by 3alpha UN code, Taiwan would be dropped
 
   year_fish <- tidy_fish %>%
-    filter(Year == year)
+    filter(YEAR == year)
 
   # CLEAN NAMES:
   # Which names don't match
