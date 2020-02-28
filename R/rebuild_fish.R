@@ -5,14 +5,15 @@
 #' @param path_to_zipfile Name of zipped file of FAO data (if in current directory); otherwise, specify path to file
 #' @return A merged, tidy dataset.
 #' @examples
-#' rebuild_fish("~/OneDrive - american.edu/GlobalProduction_2019.1.0.zip")
-#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("~/OneDrive - american.edu/FAO Data/Production-Global/ZippedFiles/GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
 rebuild_fish <- function(path_to_zipfile) {
   require(tools) # needed for file_path_sans_ext
   require(dplyr)
   require(purrr)
   require(readxl) # part of tidyverse but still need to load readxl explicitly, because it is not a core tidyverse package
 
+  # The following ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
   # set outdir
   if (file.exists(basename(path_to_zipfile))) { # if file is in current directory and only file name was given
     outdir <- getwd()
@@ -22,8 +23,6 @@ rebuild_fish <- function(path_to_zipfile) {
     stop("Check path_to_zipfile")
   }
 
-  # ensures unzipped folder is created in the same directory as the zip file (can be different from the working directory)
-
   foldername <- file_path_sans_ext(basename(path_to_zipfile))
   outfolder <- paste(outdir, foldername, sep = "/")
   unzip(path_to_zipfile, exdir = outfolder) # Problem: if unable to unzip folder, still creates outfolder how to supress this?
@@ -31,18 +30,14 @@ rebuild_fish <- function(path_to_zipfile) {
   # list files
   fish_files <- list.files(outfolder)
 
-
   # read .xlsx file (explains data structure of time series)
   # IMPORTANT: column ORDER (ABCDEF) in DS file should match columns ABCDEF in time series for looping to work below
   # each row gives info for how this time series column should be merged with a code list (CL) file
   ds_file <- fish_files[grep("DSD", fish_files)]
   path_to_ds <- paste(outfolder, ds_file, sep = "/")
-  ds <- read_excel(path_to_ds)
 
-  # remove metadata rows
-  data_start <- grep("Order", ds[, 1]) # find true header row based on column name "Order"
-  colnames(ds) <- as.character(unlist(ds[data_start, ]))
-  ds <- ds[-1, ]
+  # skip removes title row
+  ds <- read_excel(path_to_ds, skip=1)
 
   # manually correct ds file's codelist ID column:
   ds <- ds %>%
