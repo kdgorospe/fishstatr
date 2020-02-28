@@ -1,4 +1,4 @@
-map_fish<-function(tidy_fish, year){
+map_production<-function(tidy_fish, year, fish_var){
   require(tidyverse)
   require(rnaturalearth)
   require(rnaturalearthdata)
