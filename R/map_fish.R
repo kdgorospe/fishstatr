@@ -3,12 +3,13 @@ map_fish<-function(tidy_fish, year){
   require(rnaturalearth)
   require(rnaturalearthdata)
   require(rgeos)
-  year_fish <- tidy_fish %>%
-    filter(Year == year)
 
   worldmap <- ne_countries(scale = "medium", returnclass = "sf")
-  # FIXIT include as part of documentation that FAOSTAT data should inclue UN codes so this can be used to match with world map polygon databases
+  # FIXIT include as part of documentation that FAOSTAT data should inclue 3ALPHA ISO code to match with polygon database in rnaturalearth
+  # For matching countries, use 3ALPHA ISO code because FAO data has separate reports for Taiwan; if matching by 3alpha UN code, Taiwan would be dropped
 
+  year_fish <- tidy_fish %>%
+    filter(Year == year)
 
   # CLEAN NAMES:
   # Which names don't match
