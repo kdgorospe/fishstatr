@@ -63,12 +63,6 @@ rebuild_fish <- function(path_to_zipfile) {
   path_to_ts <- paste(outfolder, time_files, sep = "/")
   time_series <- read.csv(path_to_ts)
   names(time_series) <- tolower(names(time_series))
-
-  # generate path to cl files in batch:
-  # DELETE?
-  code_files <- fish_files[grep("CL", fish_files)]
-  path_to_cl <- unlist(map(outfolder, ~ paste(.x, code_files, sep = "/")))
-
   time_series_join <- time_series
 
   for (i in 1:nrow(ds)) {
