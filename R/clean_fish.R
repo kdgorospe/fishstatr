@@ -3,14 +3,18 @@
 #' \code{clean_fish} takes FAO's Global Fishery and Aquaculture Production data downloaded from FishStatJ, cleans the time series data and makes it "tidy" (i.e., long format).
 
 #' @param path_to_file File path to FAO data
-#' @param dataset FAO dataset
+#' @param dataset FAO dataset (default is Commodity Unit; production and consumption datasets have alternative data download portals that are preferred to FishStatJ)
 #' @return A cleaned, tidy dataset.
 #' @examples
-#' clean_fish("~/OneDrive - american.edu/FAO Global capture production-QUANTITY.csv")
-#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Global capture production-QUANTITY.csv")
+#' clean_fish("~/OneDrive - american.edu/FAO Data/CommoditiesAndTrade/FishStatJFiles/FAO Fisheries commodities production and trade-QUANTITY.csv")
+#' clean_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Data\\CommoditiesAndTrade\\FishStatJFiles\\FAO Fisheries commodities production and trade-QUANTITY.csv")
 
-clean_fish<-function(path_to_file, dataset="Catch"){
-  check_pkg_deps() # packages are automatically loaded, but will show error message if one of the needs to be installed
+clean_fish<-function(path_to_file, dataset="Commodity Unit"){
+  # Consider removing check_pgk_deps because this will be different for different functions:
+  # check_pkg_deps() # packages are automatically loaded, but will show error message if one of the needs to be installed
+  require(dplyr)
+  require(tidyr)
+  require(stringr)
   fish_file<-read.csv(path_to_file)
   #Remove last three rows: two rows of summed tonnage and abundance + citation
   fish_file<-fish_file %>%
