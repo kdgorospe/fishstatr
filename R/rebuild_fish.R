@@ -47,6 +47,13 @@ rebuild_fish <- function(path_to_zipfile) {
       Concept_id != "SYMBOL|SOURCE" ~ Codelist_Code_id
     ))
 
+  # Multiple CL files have the following column names in common: "Identifier" and "Code"
+  # Which means after merge, below, you get "Identifier.x" and "Identifier.y", etc.
+  # To disambiguate, Append Codelist with Concept_id
+  code_ids_to_change<-ds$Codelist_Code_id[grep("IDENTIFIER|CODE", ds$Codelist_Code_id)]
+  concept_ids_to_append<-ds$Concept_id[grep("IDENTIFIER|CODE", ds$Codelist_Code_id)]
+  new_code_ids <- paste(concept_ids_to_append, code_ids_to_change, sep = "_")
+  ds$Codelist_Code_id[grep("IDENTIFIER|CODE", ds$Codelist_Code_id)]<-new_code_ids
 
   # remove non CSVs (do this to ignore "CL_History.txt" file)
   fish_files <- fish_files[grep(".csv", fish_files)]
@@ -74,9 +81,8 @@ rebuild_fish <- function(path_to_zipfile) {
       # Many CL files have "Name" as a column, also Name_En, Name_Fr, Name_Es, etc
       # Also, "Identifier", "Major Group", and "Code" are common across some CL files
       # To disambiguate, append "Concept_ID" from DS file to all columns in CL that contain these terms
-      # use word boundaries ("\\b") to match Code exactly, and leave UN_code alone (which is needed for merging later)
-      concept_names <- paste(ds$Concept_id[i], names(cl_i)[grep("Name|Major Group|Identifier|\\bCode\\b", names(cl_i))], sep = "_")
-      names(cl_i)[grep("Name|Major Group|Identifier|Code", names(cl_i))] <- concept_names
+      concept_names <- paste(ds$Concept_id[i], names(cl_i)[grep("Name|Major_Group|Identifier|Code", names(cl_i))], sep = "_")
+      names(cl_i)[grep("Name|Major_Group|Identifier|Code", names(cl_i))] <- concept_names
 
 
       names(cl_i) <- tolower(names(cl_i)) # convert all cl headers to lowercase
