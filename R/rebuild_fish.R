@@ -72,9 +72,11 @@ rebuild_fish <- function(path_to_zipfile) {
       cl_i <- read.csv(path_to_cl, check.names = FALSE) # check.names = FALSE to prevent R from adding "X" in front of column "3Alpha_Code" - creates problems because this is the matching column for merging with time series
 
       # Many CL files have "Name" as a column, also Name_En, Name_Fr, Name_Es, etc
-      # To disambiguate, append "Concept_ID" from DS file to all columns in CL that begin with "Name"
-      concept_names <- paste(ds$Concept_id[i], names(cl_i)[grep("Name", names(cl_i))], sep = "_")
-      names(cl_i)[grep("Name", names(cl_i))] <- concept_names
+      # Also, "Identifier", "Major Group", and "Code" are common across some CL files
+      # To disambiguate, append "Concept_ID" from DS file to all columns in CL that contain these terms
+      # use word boundaries ("\\b") to match Code exactly, and leave UN_code alone (which is needed for merging later)
+      concept_names <- paste(ds$Concept_id[i], names(cl_i)[grep("Name|Major Group|Identifier|\\bCode\\b", names(cl_i))], sep = "_")
+      names(cl_i)[grep("Name|Major Group|Identifier|Code", names(cl_i))] <- concept_names
 
 
       names(cl_i) <- tolower(names(cl_i)) # convert all cl headers to lowercase
