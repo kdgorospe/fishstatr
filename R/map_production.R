@@ -3,14 +3,14 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-tidy_fish<-tmp_fish
-year_start=2013
-year_end=NA
-fish_var="quantity"
-fish_level="total"
-fish_type=NA
-geo_level="country"
-fish_unit="kg"
+#tidy_fish<-tmp_fish
+#year_start=2013
+#year_end=NA
+#fish_var="quantity"
+#fish_level="total"
+#fish_type=NA
+#geo_level="country"
+#fish_unit="kg"
 
 map_production<-function(tidy_fish,
                          year_start,
