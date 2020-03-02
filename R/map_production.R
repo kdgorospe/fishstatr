@@ -27,10 +27,14 @@ map_production<-function(tidy_fish,
   require(sf)
 
   worldmap <- ne_countries(scale = "medium", returnclass = "sf")
-  # note use iso_a3 code to keep Taiwan separate from China, since Taiwan has separate FAO reporting data
+  # note use FAO's iso_a3 code to keep Taiwan separate from China, since Taiwan has separate FAO reporting data
   # other examples?
   # i.e., better to merge with finer scale now and aggregate later, otherwise separate reports are lost with the merge
-  # need to include this in instructions for people downloading data from FishStatJ
+  # need to provide instructions for people using FishStatJ to include this as a data field before downloading the dataset
+  # worldmap has 235 iso_n3 and 235 iso_a3 codes
+  # FAO has 247 country (aka iso_n3) and 260 iso3 alpha codes - finest scale appears to be FAO's iso3 alpha codes
+
+
 
   # Filter correct units
   tidy_fish<-tidy_fish %>%
@@ -52,15 +56,15 @@ map_production<-function(tidy_fish,
   if (geo_level == "country"){
     geography <- "country_iso3_code"
     merge_col <- "iso_a3"
-  }
-  if (geo_level == "continent"){
+  } else if (geo_level == "continent"){
     geography<-"continent_group"
     merge_col <- "region_un"
-  }
-  if (geo_level == "region"){
+  } else if (geo_level == "region"){
     geography<-"georegion_group"
     # FIXIT - need to check, no equivalent for this merge???
   }
+
+
 
   # FIXIT - probably don't want to produce all 48 levels of isscaap groups, 416 levels of taxa "family", or 104 levels of "order"
   # FIXIT - instead, default should be "Total", otherwise map specified isscaap, family, or species
@@ -76,7 +80,7 @@ map_production<-function(tidy_fish,
   # Now aggregate: If total fish is desired:
   if (fish_level == "total"){
     year_geo_taxa_fish<-year_fish %>%
-      group_by(get(geography)) %>%
+      group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') # using !! and := tells dplyr to rename based on the expression of geography
   } else { # If grouped fish is desired:
@@ -86,10 +90,12 @@ map_production<-function(tidy_fish,
       summarize(fish_sum = sum(get(fish_var)))
   }
 
-  worldmap[[merge_col]] <- as.factor(worldmap[[merge_col]])
-  worldmap_nomatch <- levels(worldmap[[merge_col]])[!levels(worldmap[[merge_col]]) %in% levels(year_geo_taxa_fish[[geography]])]
-  fao_nomatch <- levels(year_geo_taxa_fish[[geography]])[!levels(year_geo_taxa_fish[[geography]]) %in% levels(worldmap[[merge_col]])]
-  sort(unique(year_fish$country_name_en[year_fish$country_iso3_code %in% fao_nomatch]))
+  # Convert fao[[geography]] to character before merge to suppress warning message
+  year_geo_taxa_fish[[geography]] <- as.character(year_geo_taxa_fish[[geography]])
+  #worldmap[[merge_col]] <- as.factor(worldmap[[merge_col]])
+  #worldmap_nomatch <- levels(worldmap[[merge_col]])[!levels(worldmap[[merge_col]]) %in% levels(year_geo_taxa_fish[[geography]])]
+  #fao_nomatch <- levels(year_geo_taxa_fish[[geography]])[!levels(year_geo_taxa_fish[[geography]]) %in% levels(worldmap[[merge_col]])]
+  #sort(unique(year_fish$country_name_en[year_fish$country_iso3_code %in% fao_nomatch]))
   # Countries in Worldmap but not in FAO data: "ALA" "ATA" "ESH" "GGY" "HMD" "JEY" "SGS" "VAT"
   # Countries in FAO but not Worldmap:"ANT" "BES" "CSK" "EAZ" "GIB" "GLP" "GUF" "MTQ" "MYT" "REU" "SCG" "SJM" "SUN" "TKL" "TUV" "YUG"
   #[1] Bonaire/S.Eustatius/Saba Channel Islands          Czechoslovakia
@@ -100,9 +106,9 @@ map_production<-function(tidy_fish,
   #[16] Tuvalu                   Un. Sov. Soc. Rep.       Yugoslavia SFR
   #[19] Zanzibar
 
-  combined <- sort(union(levels(worldmap[[merge_col]]), levels(year_geo_taxa_fish[[geography]])))
-  levels(worldmap[[merge_col]])<-combined
-  levels(year_geo_taxa_fish[[geography]])<-combined
+  #combined <- sort(union(levels(worldmap[[merge_col]]), levels(year_geo_taxa_fish[[geography]])))
+  #levels(worldmap[[merge_col]])<-combined
+  #levels(year_geo_taxa_fish[[geography]])<-combined
   firstname <- geography
   join_cols <- merge_col
   names(join_cols) <- firstname
@@ -120,14 +126,21 @@ map_production<-function(tidy_fish,
           title = element_text(size=40))
 
 
+  for (i in 1:nlevels(mapdat$source_name_en)){
+    sourcedat<-mapdat %>%
+      filter(source_name_en == levels(mapdat$source_name_en)[i])
 
-  p1<-ggplot()+
-    geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-    labs(title="Production")+
-    allplots
+    p1<-ggplot()+
+      geom_sf(data=sourcedat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
+      labs(title="Production")+
+      allplots
 
-  png(filename="plot.png", width=1800, height=1200)
-  print(p1)
-  dev.off()
+    nextfile <- paste("plot_", levels(mapdat$source_name_en)[i], ".png", sep="")
+    png(filename=nextfile, width=1800, height=1200)
+    print(p1)
+    dev.off()
+  }
+
+
 
 }
