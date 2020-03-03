@@ -6,7 +6,7 @@
 #' @return A merged, tidy dataset.
 #' @examples
 #' rebuild_fish("~/OneDrive - american.edu/Global Seafood Lab Data/FAO Data/Production-Global/ZippedFiles/GlobalProduction_2019.1.0.zip")
-#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\Global Seafood Lab Data\\FAO Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
 rebuild_fish <- function(path_to_zipfile) {
   require(tools) # needed for file_path_sans_ext
   require(dplyr)
