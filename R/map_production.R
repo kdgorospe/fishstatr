@@ -3,14 +3,15 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-#tidy_fish<-tmp_fish
-#year_start=2013
-#year_end=NA
-#fish_var="quantity"
-#fish_level="total"
-#fish_type=NA
-#geo_level="country"
-#fish_unit="kg"
+tidy_fish<-tmp_fish
+year_start=2013
+year_end=NA
+fish_var="quantity"
+fish_level="total"
+fish_type=NA
+geo_level="country"
+fish_unit="kg"
+combine_sources=FALSE
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -33,8 +34,6 @@ map_production<-function(tidy_fish,
   # need to provide instructions for people using FishStatJ to include this as a data field before downloading the dataset
   # worldmap has 235 iso_n3 and 235 iso_a3 codes
   # FAO has 247 country (aka iso_n3) and 260 iso3 alpha codes - finest scale appears to be FAO's iso3 alpha codes
-
-
 
   # Filter correct units
   tidy_fish<-tidy_fish %>%
@@ -64,10 +63,7 @@ map_production<-function(tidy_fish,
     # FIXIT - need to check, no equivalent for this merge???
   }
 
-
-
-  # FIXIT - probably don't want to produce all 48 levels of isscaap groups, 416 levels of taxa "family", or 104 levels of "order"
-  # FIXIT - instead, default should be "Total", otherwise map specified isscaap, family, or species
+  # If, fish_level is not "total", then specify the column "taxa", and use this column to filter for specific fish_type
   # Match column name to fish_level parameter
   if (fish_level == "isscaap"){
     taxa <- "isscaap_group"
@@ -79,15 +75,21 @@ map_production<-function(tidy_fish,
 
   # Now aggregate: If total fish is desired:
   if (fish_level == "total"){
-    year_geo_taxa_fish<-year_fish %>%
+    year_geo_taxa_fish <- year_fish %>%
       group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') # using !! and := tells dplyr to rename based on the expression of geography
   } else { # If grouped fish is desired:
-    year_geo_taxa_fish<-year_fish %>%
+    year_geo_taxa_fish <- year_fish %>%
       filter(get(taxa) == fish_type) %>% # FIXIT need to test if this works
       group_by(get(geography)) %>%
       summarize(fish_sum = sum(get(fish_var)))
+  }
+
+  if (combine_sources == TRUE){
+    year_geo_taxa_fish <- year_geo_taxa_fish %>%
+      group_by(get(geography)) %>%
+      summarize(fish_sum = sum(get_fish_var))
   }
 
   # Convert fao[[geography]] to character before merge to suppress warning message
@@ -113,34 +115,46 @@ map_production<-function(tidy_fish,
   join_cols <- merge_col
   names(join_cols) <- firstname
 
-  mapdat <- year_geo_taxa_fish %>%
-    left_join(worldmap, join_cols) %>%
-    arrange(desc(fish_sum))
-
   # Plot map
   allplots<-
     theme_void()+
     theme(axis.text.x = element_blank(),
-          legend.title=element_text(size=30),
-          legend.text=element_text(size=25),
+          legend.title = element_text(size=30),
+          legend.text = element_text(size=25),
           title = element_text(size=40))
 
+  if (combine_sources == TRUE){
+    mapdat <- year_geo_taxa_fish %>%
+      full_join(worldmap, join_cols) %>%
+      arrange(desc(fish_sum))
 
-  for (i in 1:nlevels(mapdat$source_name_en)){
-    sourcedat<-mapdat %>%
-      filter(source_name_en == levels(mapdat$source_name_en)[i])
-
+    # Plot single map of combined total production from all sources
     p1<-ggplot()+
-      geom_sf(data=sourcedat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-      labs(title="Production")+
+      geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
+      labs(title="Total Production - All Sources Combined")+
       allplots
 
-    nextfile <- paste("plot_", levels(mapdat$source_name_en)[i], ".png", sep="")
-    png(filename=nextfile, width=1800, height=1200)
+    png(filename = "plot_TotalProduction-AllSources.png", width=1800, height=1200)
     print(p1)
     dev.off()
+  } else if (combine_sources == FALSE){
+    # Plot separate maps for each production source
+    for (i in 1:nlevels(year_geo_taxa_fish$source_name_en)){
+      sourcedat<-year_geo_taxa_fish %>%
+        filter(source_name_en == levels(year_geo_taxa_fish$source_name_en)[i]) %>%
+        full_join(worldmap, join_cols) %>%
+        arrange(desc(fish_sum))
+
+      p1<-ggplot()+
+        geom_sf(data=sourcedat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
+        labs(title = levels(year_geo_taxa_fish$source_name_en)[i])+
+        allplots
+
+      nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], ".png", sep="")
+      png(filename=nextfile, width=1800, height=1200)
+      print(p1)
+      dev.off()
+    }
   }
-
-
 
 }
