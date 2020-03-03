@@ -150,13 +150,15 @@ map_production<-function(tidy_fish,
         full_join(worldmap, join_cols) %>%
         arrange(desc(fish_sum))
 
+      next_title <- paste("Global", tolower(levels(year_geo_taxa_fish$source_name_en)[i]), "in", year_start, sep=" ")
+
       p1<-ggplot()+
         geom_sf(data=sourcedat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-        labs(title = levels(year_geo_taxa_fish$source_name_en)[i])+
+        labs(title = next_title)+
         scale_fill_continuous(name = fish_unit)+
         allplots
 
-      nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], ".png", sep="")
+      nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "_", year_start, ".png", sep="")
       png(filename=nextfile, width=png_width, height=png_height)
       print(p1)
       dev.off()
