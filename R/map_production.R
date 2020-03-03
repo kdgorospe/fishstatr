@@ -11,7 +11,7 @@ fish_level="total"
 fish_type=NA
 geo_level="country"
 fish_unit="kg"
-combine_sources=FALSE
+combine_sources=TRUE
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -19,7 +19,8 @@ map_production<-function(tidy_fish,
                          fish_var="quantity",
                          fish_level="total",
                          fish_type=NA,
-                         geo_level="country"){
+                         geo_level="country",
+                         combine_sources=FALSE){
   require(dplyr)
   require(rnaturalearth)
   require(rnaturalearthdata)
@@ -73,24 +74,33 @@ map_production<-function(tidy_fish,
     taxa <- "species_scientific_names"
   }
 
-  # Now aggregate: If total fish is desired:
-  if (fish_level == "total"){
+  # Now aggregate:
+  # If production sources should be combined
+  if (combine_sources == TRUE & fish_level == "total"){
+    year_geo_taxa_fish <- year_fish %>%
+      group_by(get(geography)) %>%
+      summarize(fish_sum = sum(get(fish_var))) %>%
+      rename(!!geography := 'get(geography)')
+  } else if (combine_sources == TRUE & fish_level != "total"){
+    ## FIXIT - need to fill this in
+  }
+
+
+
+  # If total fish is desired:
+  if (combine_sources == FALSE & fish_level == "total"){
     year_geo_taxa_fish <- year_fish %>%
       group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') # using !! and := tells dplyr to rename based on the expression of geography
-  } else { # If grouped fish is desired:
+  } else if (combine_sources == FALSE & fish_level != "total"){ # If grouped fish is desired:
     year_geo_taxa_fish <- year_fish %>%
       filter(get(taxa) == fish_type) %>% # FIXIT need to test if this works
       group_by(get(geography)) %>%
-      summarize(fish_sum = sum(get(fish_var)))
+      summarize(fish_sum = sum(get(fish_var))) %>%
+      rename(!!geography := 'get(geography)')
   }
 
-  if (combine_sources == TRUE){
-    year_geo_taxa_fish <- year_geo_taxa_fish %>%
-      group_by(get(geography)) %>%
-      summarize(fish_sum = sum(get_fish_var))
-  }
 
   # Convert fao[[geography]] to character before merge to suppress warning message
   year_geo_taxa_fish[[geography]] <- as.character(year_geo_taxa_fish[[geography]])
@@ -132,14 +142,18 @@ map_production<-function(tidy_fish,
       full_join(worldmap, join_cols) %>%
       arrange(desc(fish_sum))
 
+    total_title <- paste("Global total seafood production in", year_start, sep = " ")
+
     # Plot single map of combined total production from all sources
     p1<-ggplot()+
       geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-      labs(title="Total Production - All Sources Combined")+
+      labs(title=total_title)+
       scale_fill_continuous(name = fish_unit)+
       allplots
 
-    png(filename = "plot_TotalProduction-AllSources.png", width=png_width, height=png_height)
+    totalfile<-paste("plot_TotalProduction-AllSources-", year_start, ".png", sep = "")
+
+    png(filename = totalfile, width=png_width, height=png_height)
     print(p1)
     dev.off()
   } else if (combine_sources == FALSE){
@@ -158,11 +172,10 @@ map_production<-function(tidy_fish,
         scale_fill_continuous(name = fish_unit)+
         allplots
 
-      nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "_", year_start, ".png", sep="")
+      nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", year_start, ".png", sep="")
       png(filename=nextfile, width=png_width, height=png_height)
       print(p1)
       dev.off()
     }
   }
-
 }
