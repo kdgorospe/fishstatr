@@ -119,9 +119,13 @@ map_production<-function(tidy_fish,
   allplots<-
     theme_void()+
     theme(axis.text.x = element_blank(),
-          legend.title = element_text(size=30),
-          legend.text = element_text(size=25),
-          title = element_text(size=40))
+          legend.title = element_text(size = 30),
+          legend.text = element_text(size = 25),
+          title = element_text(size = 40))
+
+  png_width <- 1800
+  png_height <- 1200
+
 
   if (combine_sources == TRUE){
     mapdat <- year_geo_taxa_fish %>%
@@ -132,9 +136,10 @@ map_production<-function(tidy_fish,
     p1<-ggplot()+
       geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
       labs(title="Total Production - All Sources Combined")+
+      scale_fill_continuous(name = fish_unit)+
       allplots
 
-    png(filename = "plot_TotalProduction-AllSources.png", width=1800, height=1200)
+    png(filename = "plot_TotalProduction-AllSources.png", width=png_width, height=png_height)
     print(p1)
     dev.off()
   } else if (combine_sources == FALSE){
@@ -148,10 +153,11 @@ map_production<-function(tidy_fish,
       p1<-ggplot()+
         geom_sf(data=sourcedat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
         labs(title = levels(year_geo_taxa_fish$source_name_en)[i])+
+        scale_fill_continuous(name = fish_unit)+
         allplots
 
       nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], ".png", sep="")
-      png(filename=nextfile, width=1800, height=1200)
+      png(filename=nextfile, width=png_width, height=png_height)
       print(p1)
       dev.off()
     }
