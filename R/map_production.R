@@ -3,15 +3,16 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-#tidy_fish<-tmp_fish
-#year_start=2013
-#year_end=NA
-#fish_var="quantity"
-#fish_level="total"
-#fish_type=NA
-#geo_level="country"
-#fish_unit="kg"
-#combine_sources=TRUE
+tidy_fish<-fish_tmp
+year_start=1985
+year_end=NA
+fish_var="quantity"
+fish_level="total"
+fish_type=NA
+geo_level="country"
+fish_unit="kg"
+combine_sources=FALSE
+output_path=("~/Documents")
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -21,13 +22,21 @@ map_production<-function(tidy_fish,
                          fish_type=NA,
                          fish_unit="kg",
                          geo_level="country",
-                         combine_sources=FALSE){
+                         combine_sources=FALSE,
+                         output_path=NA){
   require(dplyr)
   require(rnaturalearth)
   require(rnaturalearthdata)
   require(rgeos)
   require(ggplot2)
   require(sf)
+
+  if (is.na(output_path)) {
+    outdir<-getwd()
+    setwd(outdir)
+  } else {
+    setwd(output_path)
+  }
 
   worldmap <- ne_countries(scale = "medium", returnclass = "sf")
   # note use FAO's iso_a3 code to keep Taiwan separate from China, since Taiwan has separate FAO reporting data
