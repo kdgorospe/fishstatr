@@ -19,6 +19,7 @@ map_production<-function(tidy_fish,
                          fish_var="quantity",
                          fish_level="total",
                          fish_type=NA,
+                         fish_unit="kg",
                          geo_level="country",
                          combine_sources=FALSE){
   require(dplyr)
