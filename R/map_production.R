@@ -3,19 +3,19 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-tidy_fish<-fish_tmp
-year_start=1985
-year_end=NA
-fish_var="quantity"
-fish_level="total"
-fish_name=NA
-geo_level="country"
-fish_unit="kg"
-combine_sources=FALSE
-output_path=("~/Documents")
+#tidy_fish<-tmp_fish
+#year_start=1985
+#year_end=NA
+#fish_var="quantity"
+#fish_level="total"
+#fish_name=NA
+#geo_level="country"
+#fish_unit="t"
+#combine_sources=FALSE
+#output_path=("~/Documents")
 # Other options:
-fish_level="isscaap"
-fish_name="Tunas, bonitos, billfishes"
+#fish_level="isscaap"
+#fish_name="Tunas, bonitos, billfishes"
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -23,7 +23,7 @@ map_production<-function(tidy_fish,
                          fish_var="quantity",
                          fish_level="total",
                          fish_name=NA,
-                         fish_unit="kg",
+                         fish_unit="t",
                          geo_level="country",
                          combine_sources=FALSE,
                          output_path=NA){
@@ -50,7 +50,7 @@ map_production<-function(tidy_fish,
   # FAO has 247 country (aka iso_n3) and 260 iso3 alpha codes - finest scale appears to be FAO's iso3 alpha codes
 
   # Filter correct units
-  tidy_fish<-tidy_fish %>%
+  dat_fish<-tidy_fish %>%
     filter(unit == fish_unit)
 
   # Filter years
@@ -59,9 +59,8 @@ map_production<-function(tidy_fish,
   } else {
     all_years <- seq(from = year_start, to = year_end, by = 1)
   }
-  year_fish <- tidy_fish %>%
-    filter(year == all_years) %>%
-    droplevels()
+  year_fish <- dat_fish %>%
+    filter(year == all_years)
 
   # Match column name to geo_level parameter
   # In tmp_fish there are more levels in iso3 than in "country"; for now, use iso3 as the reporting level
@@ -88,32 +87,35 @@ map_production<-function(tidy_fish,
   }
 
   # Now aggregate:
-  # If production sources should be combined
+  # If production sources should be combined:
   if (combine_sources == TRUE & fish_level == "total"){
     year_geo_taxa_fish <- year_fish %>%
       group_by(get(geography)) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
-      rename(!!geography := 'get(geography)')
+      rename(!!geography := 'get(geography)') %>%
+      droplevels()
   } else if (combine_sources == TRUE & fish_level != "total"){
     ## FIXIT - need to fill this in
   }
 
 
 
-  # If total fish is desired:
+  # If production sources should be kept separate
   # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
   # i.e., FIXIT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
   if (combine_sources == FALSE & fish_level == "total"){
     year_geo_taxa_fish <- year_fish %>%
       group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
-      rename(!!geography := 'get(geography)') # using !! and := tells dplyr to rename based on the expression of geography
+      rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
+      droplevels()
   } else if (combine_sources == FALSE & fish_level != "total"){ # If grouped fish is desired:
     year_geo_taxa_fish <- year_fish %>%
       filter(get(taxa) == fish_name) %>% # FIXIT need to test if this works
       group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
-      rename(!!geography := 'get(geography)')
+      rename(!!geography := 'get(geography)') %>%
+      droplevels()
   }
 
 

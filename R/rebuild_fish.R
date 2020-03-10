@@ -85,14 +85,21 @@ rebuild_fish <- function(path_to_zipfile) {
 
 
       # If factor...
-      if (is.factor(cl_i[[merge_col]])) {
+      #if (is.factor(cl_i[[merge_col]])) {
         # ...Test if factor levels need to be merged?
-        if (!nlevels(cl_i[[merge_col]]) == nlevels(time_series_join[[names(time_series_join)[i]]])) {
+        #if (!nlevels(cl_i[[merge_col]]) == nlevels(time_series_join[[names(time_series_join)[i]]])) {
           # combined <- sort(union(time_series_join[[names(time_series_join)[i]]], levels(cl_i[[merge_col]])))
-          levels(time_series_join[[names(time_series_join)[i]]]) <- levels(cl_i[[merge_col]])
-        }
-      }
+      #    levels(time_series_join[[names(time_series_join)[i]]]) <- levels(cl_i[[merge_col]])
+      #  }
+      #}
       # This avoids warnings about unequal factor levels below
+
+      # Try converting to character first instead
+      if (is.factor(cl_i[[merge_col]])){
+        cl_i[[merge_col]]<-as.character(cl_i[[merge_col]])
+        time_series_join[[names(time_series_join)[i]]]<-as.character(time_series_join[[names(time_series_join)[i]]])
+      }
+
 
       # Can't just merge by column number:
       # In Time Series, column COUNTRY, AREA, SOURCE, SPECIES, and UNIT correspond to column 1 in their respective CL files
@@ -106,6 +113,11 @@ rebuild_fish <- function(path_to_zipfile) {
 
 
       time_series_join <- left_join(time_series_join, cl_i, by = join_cols)
+
+      # Convert back to factor
+      if (is.character(time_series_join[[names(time_series_join)[i]]])){
+        time_series_join[[names(time_series_join)[i]]]<-as.factor(time_series_join[[names(time_series_join)[i]]])
+      }
     }
     # Expected warning: Coerces from factor to character because time_series$SPECIES (nlevels=2341) and CL_FI_SPECIES_GROUPS.csv column "3alpha_code" (nlevels = 12751) have different number of factor levels
     # Expected warning: Coerces from factor to chracter because time_series$UNIT and CL_FILE_UNIT.csv column "code" have different number of factor levels
