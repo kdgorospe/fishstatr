@@ -13,9 +13,13 @@
 #fish_unit="t"
 #combine_sources=FALSE
 #output_path=("~/Documents")
-# Other options:
+## Other options:
+#combine_sources=TRUE
 #fish_level="isscaap"
 #fish_name="Tunas, bonitos, billfishes"
+
+# FIXIT: keep fish_var="quantity" if this function can also be used for other time series
+# If it makes more sense to have separate functions (e.g., map_food_balance, map_commodity_trade, etc, then remove fish_var parameter and just hard code this variable in the function)
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -95,7 +99,12 @@ map_production<-function(tidy_fish,
       rename(!!geography := 'get(geography)') %>%
       droplevels()
   } else if (combine_sources == TRUE & fish_level != "total"){
-    ## FIXIT - need to fill this in
+    year_geo_taxa_fish <- year_fish %>%
+      filter(get(taxa) == fish_name) %>%
+      group_by(get(geography)) %>%
+      summarize(fish_sum = sum(get(fish_var))) %>%
+      rename(!!geography := 'get(geography)') %>%
+      droplevels()
   }
 
 
@@ -111,7 +120,7 @@ map_production<-function(tidy_fish,
       droplevels()
   } else if (combine_sources == FALSE & fish_level != "total"){ # If grouped fish is desired:
     year_geo_taxa_fish <- year_fish %>%
-      filter(get(taxa) == fish_name) %>% # FIXIT need to test if this works
+      filter(get(taxa) == fish_name) %>%
       group_by(get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>%
@@ -158,7 +167,12 @@ map_production<-function(tidy_fish,
       full_join(worldmap, join_cols) %>%
       arrange(desc(fish_sum))
 
-    total_title <- paste("Global total seafood production in", year_start, sep = " ")
+    if (is.na(fish_name)){
+      total_title <- paste("Global total seafood production in", year_start, sep = " ")
+    } else {
+      total_title <- paste("Global total seafood production of", tolower(fish_name), "in", year_start, sep=" ")
+    }
+
 
     # Plot single map of combined total production from all sources
     p1<-ggplot()+
@@ -167,7 +181,13 @@ map_production<-function(tidy_fish,
       scale_fill_continuous(name = fish_unit)+
       allplots
 
-    totalfile<-paste("plot_TotalProduction-AllSources-", year_start, ".png", sep = "")
+
+    if (is.na(fish_name)){
+      totalfile <- paste("plot_TotalProduction-AllSources-", year_start, ".png", sep = "")
+    } else {
+      totalfile <- paste("plot_TotalProduction-AllSources-", fish_name, "-", year_start, ".png", sep="")
+    }
+
 
     png(filename = totalfile, width=png_width, height=png_height)
     print(p1)
