@@ -5,7 +5,7 @@
 #' @param path_to_zipfile Name of zipped file of FAO data (if in current directory); otherwise, specify path to file
 #' @return A merged, tidy dataset.
 #' @examples
-#' rebuild_fish(/Volumes/Dept/CAS/jgephart/FishStatR/Data/Production-Global/ZippedFiles/GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("/Volumes/jgephart/FishStatR/Data/Production-Global/ZippedFiles/GlobalProduction_2019.1.0.zip")
 #' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
 rebuild_fish <- function(path_to_zipfile) {
   require(tools) # needed for file_path_sans_ext
