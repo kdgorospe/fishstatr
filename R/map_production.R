@@ -3,23 +3,21 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-#tidy_fish<-tmp_fish
-#year_start=1985
-#year_end=NA
-#fish_var="quantity"
-#fish_level="total"
-#fish_name=NA
-#geo_level="country"
-#fish_unit="t"
-#combine_sources=FALSE
-#output_path=("~/Documents")
-## Other options:
-#combine_sources=TRUE
-#fish_level="isscaap"
-#fish_name="Tunas, bonitos, billfishes"
+tidy_fish<-tmp_fish
+year_start=1995
+year_end=2000
+fish_var="quantity" # can also be number
+fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
+fish_name=NA # must be found within fish_level
+geo_level="country"
+fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
+combine_sources=FALSE
+output_path=("C:\\Users\\kdgor\\Documents")
 
-# FIXIT: keep fish_var="quantity" if this function can also be used for other time series
-# If it makes more sense to have separate functions (e.g., map_food_balance, map_commodity_trade, etc, then remove fish_var parameter and just hard code this variable in the function)
+## Other options:
+combine_sources=TRUE
+fish_level="species_scientific_name"
+fish_name="Scarus forsteni"
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -46,9 +44,9 @@ map_production<-function(tidy_fish,
   }
 
   worldmap <- ne_countries(scale = "medium", returnclass = "sf")
-  # note use FAO's iso_a3 code to keep Taiwan separate from China, since Taiwan has separate FAO reporting data
-  # other examples?
-  # i.e., better to merge with finer scale now and aggregate later, otherwise separate reports are lost with the merge
+  # note use FAO's iso_a3 (reporting countries and territories)
+  # This is finer-scale than country: example, Taiwan separate from China; Guam, PR separate from USA
+  # i.e., work with finer scale now, can decide to aggregate later
   # need to provide instructions for people using FishStatJ to include this as a data field before downloading the dataset
   # worldmap has 235 iso_n3 and 235 iso_a3 codes
   # FAO has 247 country (aka iso_n3) and 260 iso3 alpha codes - finest scale appears to be FAO's iso3 alpha codes
@@ -64,11 +62,11 @@ map_production<-function(tidy_fish,
     all_years <- seq(from = year_start, to = year_end, by = 1)
   }
   year_fish <- dat_fish %>%
-    filter(year == all_years)
+    filter(year %in% all_years)
 
   # Match column name to geo_level parameter
   # In tmp_fish there are more levels in iso3 than in "country"; for now, use iso3 as the reporting level
-  # for future use: un_a3 in worldmap == "country" column in tmp_fish == code, same as UN-M49 in FishStatJ (3 digit country ID number)
+  # other notes: un_a3 in worldmap == "country" in tmp_fish == code in FishStatJ (3 digit UNM49 country ID number)
   if (geo_level == "country"){
     geography <- "country_iso3_code"
     merge_col <- "iso_a3"
@@ -80,51 +78,57 @@ map_production<-function(tidy_fish,
     # FIXIT - need to check, no equivalent for this merge???
   }
 
-  # If, fish_level is not "total", then specify the column "taxa", and use this column to filter for specific fish_name
-  # Match column name to fish_level parameter
-  if (fish_level == "isscaap"){
-    taxa <- "isscaap_group"
-  } else if (fish_level == "family"){
-    taxa <- "family"
-  } else if (fish_level == "species") { # Filter specific species
-    taxa <- "species_scientific_names"
-  }
+  # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
+  # i.e., FIXIT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
+  # For now, remove all entries where quantity=0 (otherwise, countries are colored in as 0 as opposed to being NA)
+  year_fish <- year_fish %>%
+    filter(get(fish_var) != 0)
 
   # Now aggregate:
   # If production sources should be combined:
+  # If, fish_level is not "total", then code will filter for specified fish_name in specified fish_level
   if (combine_sources == TRUE & fish_level == "total"){
     year_geo_taxa_fish <- year_fish %>%
-      group_by(get(geography)) %>%
+      group_by(get(geography), year) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>%
       droplevels()
   } else if (combine_sources == TRUE & fish_level != "total"){
-    year_geo_taxa_fish <- year_fish %>%
-      filter(get(taxa) == fish_name) %>%
-      group_by(get(geography)) %>%
-      summarize(fish_sum = sum(get(fish_var))) %>%
-      rename(!!geography := 'get(geography)') %>%
-      droplevels()
+    if (fish_name %in% year_fish[[fish_level]]){ # Can the fish be found in the dataset?
+      year_geo_taxa_fish <- year_fish %>%
+        filter(get(fish_level) == fish_name) %>%
+        group_by(get(geography), year) %>%
+        summarize(fish_sum = sum(get(fish_var))) %>%
+        rename(!!geography := 'get(geography)') %>%
+        droplevels()
+    } else {
+      nofish<-paste("No", tolower(fish_name), "production in specified year(s)")
+      stop(nofish)
+      }
   }
 
 
 
-  # If production sources should be kept separate
-  # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
-  # i.e., FIXIT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
-  if (combine_sources == FALSE & fish_level == "total"){
+  # If production sources (capture vs various types of aquaculture) should be kept separate
+  # If, fish_level is not "total", then code will filter for specified fish_name in specified fish_level
+    if (combine_sources == FALSE & fish_level == "total"){
     year_geo_taxa_fish <- year_fish %>%
-      group_by(get(geography), source_name_en) %>%
+      group_by(year, get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
       droplevels()
   } else if (combine_sources == FALSE & fish_level != "total"){ # If grouped fish is desired:
+    if (fish_name %in% year_fish[[fish_level]])
     year_geo_taxa_fish <- year_fish %>%
-      filter(get(taxa) == fish_name) %>%
-      group_by(get(geography), source_name_en) %>%
+      filter(get(fish_level) == fish_name) %>%
+      group_by(year, get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>%
       droplevels()
+    else {
+      nofish<-paste("No", tolower(fish_name), "production in specified year(s)")
+      stop(nofish)
+    }
   }
 
 
@@ -162,68 +166,72 @@ map_production<-function(tidy_fish,
   png_height <- 1200
 
   # Plot map
+  # FIXIT need to build in warnings / errors for when specified fish_name is produced in some but not all years
+  # If sources should be combined...
   if (combine_sources == TRUE){
-    mapdat <- year_geo_taxa_fish %>%
-      full_join(worldmap, join_cols) %>%
-      arrange(desc(fish_sum))
-
-    if (is.na(fish_name)){
-      total_title <- paste("Global total seafood production in", year_start, sep = " ")
-    } else {
-      total_title <- paste("Global total seafood production of", tolower(fish_name), "in", year_start, sep=" ")
-    }
-
-
-    # Plot single map of combined total production from all sources
-    p1<-ggplot()+
-      geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-      labs(title=total_title)+
-      scale_fill_continuous(name = fish_unit)+
-      allplots
-
-
-    if (is.na(fish_name)){
-      totalfile <- paste("plot_TotalProduction-AllSources-", year_start, ".png", sep = "")
-    } else {
-      totalfile <- paste("plot_TotalProduction-AllSources-", fish_name, "-", year_start, ".png", sep="")
-    }
-
-
-    png(filename = totalfile, width=png_width, height=png_height)
-    print(p1)
-    dev.off()
-  } else if (combine_sources == FALSE){
-    # Plot separate maps for each production source
-    for (i in 1:nlevels(year_geo_taxa_fish$source_name_en)){
-      mapdat<-year_geo_taxa_fish %>%
-        filter(source_name_en == levels(year_geo_taxa_fish$source_name_en)[i]) %>%
+    # First find maximum value for fish_sum and use this to standardize legend of all maps in time series
+    max_scale<-max(year_geo_taxa_fish[["fish_sum"]], na.rm = TRUE)
+    # max_scale<-signif(max_fish, digits = 1) # This creates NA's on the map if max_scale ends up being less than max value
+    # Loop through each year, and plot single map of combined total production from all sources
+    for (y in 1:length(all_years)){
+      mapdat <- year_geo_taxa_fish %>%
+        filter(year==all_years[y]) %>%
         full_join(worldmap, join_cols) %>%
         arrange(desc(fish_sum))
-
       if (is.na(fish_name)){
-        next_title <- paste("Global", tolower(levels(year_geo_taxa_fish$source_name_en)[i]), "in", year_start, sep=" ")
+        total_title <- paste("Global total seafood production in", all_years[y], sep = " ")
       } else {
-        next_title <- paste("Global", tolower(levels(year_geo_taxa_fish$source_name_en)[i]), "of", tolower(fish_name), "in", year_start, sep=" ")
+        total_title <- paste("Global total seafood production of", tolower(fish_name), "in", all_years[y], sep=" ")
       }
-
-
       p1<-ggplot()+
         geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
-        labs(title = next_title)+
-        scale_fill_continuous(name = fish_unit)+
+        labs(title=total_title)+
+        scale_fill_continuous(limits=c(0, max_scale), name = fish_unit)+
         allplots
-
       if (is.na(fish_name)){
-        nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", year_start, ".png", sep="")
+        totalfile <- paste("plot_TotalProduction-AllSources-", all_years[y], ".png", sep = "")
       } else {
-        nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", fish_name, "-", year_start, ".png", sep="")
+        totalfile <- paste("plot_TotalProduction-AllSources-", fish_name, "-", all_years[y], ".png", sep="")
       }
-
-
-
-      png(filename=nextfile, width=png_width, height=png_height)
+      png(filename = totalfile, width=png_width, height=png_height)
       print(p1)
       dev.off()
+    }
+
+    # BUT if production sources should be kept separate
+  } else if (combine_sources == FALSE){
+    # Loop and plot separate maps for each production source and each year
+    for (i in 1:nlevels(year_geo_taxa_fish$source_name_en)){
+      # First get the production source
+      sourcedat<-year_geo_taxa_fish %>%
+        filter(source_name_en == levels(year_geo_taxa_fish$source_name_en)[i])
+      # First find maximum value for fish_sum (within a production source) and use this to standardize legend of all maps in time series
+      max_scale<-max(sourcedat[["fish_sum"]], na.rm = TRUE)
+      # Then loop through sourcedat and make plot for each year:
+      for (y in 1:length(all_years)){
+        mapdat <- sourcedat %>%
+          filter(year==all_years[y]) %>%
+          full_join(worldmap, join_cols) %>%
+          arrange(desc(fish_sum))
+        if (is.na(fish_name)){
+          next_title <- paste("Global", tolower(levels(year_geo_taxa_fish$source_name_en)[i]), "in", all_years[y], sep=" ")
+        } else {
+          next_title <- paste("Global", tolower(levels(year_geo_taxa_fish$source_name_en)[i]), "of", tolower(fish_name), "in", all_years[y], sep=" ")
+        }
+        p1<-ggplot()+
+          geom_sf(data=mapdat, aes(fill=fish_sum, geometry=geometry))+ # When working with tibbles, Need to specify geometry column manually
+          labs(title = next_title)+
+          scale_fill_continuous(limits=c(0, max_scale), name = fish_unit)+
+          allplots
+        if (is.na(fish_name)){
+          nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", all_years[y], ".png", sep="")
+        } else {
+          nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", fish_name, "-", all_years[y], ".png", sep="")
+        }
+        png(filename=nextfile, width=png_width, height=png_height)
+        print(p1)
+        dev.off()
+      }
     }
   }
 }
