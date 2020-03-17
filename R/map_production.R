@@ -11,7 +11,7 @@
 #geo_level="country"
 #fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
 #combine_sources=FALSE
-#output_path=("C:\\Users\\kdgor\\Documents")
+#output_path=("~/")
 
 ## Other options:
 #combine_sources=TRUE
