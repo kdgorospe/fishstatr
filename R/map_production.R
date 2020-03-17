@@ -187,9 +187,9 @@ map_production<-function(tidy_fish,
         scale_fill_continuous(limits=c(0, max_scale), name = fish_unit)+
         allplots
       if (is.na(fish_name)){
-        totalfile <- paste("plot_TotalProduction-AllSources-", all_years[y], ".png", sep = "")
+        totalfile <- paste("plot_map_TotalProduction-AllSources-", all_years[y], ".png", sep = "")
       } else {
-        totalfile <- paste("plot_TotalProduction-AllSources-", fish_name, "-", all_years[y], ".png", sep="")
+        totalfile <- paste("plot_map_TotalProduction-AllSources-", fish_name, "-", all_years[y], ".png", sep="")
       }
       png(filename = totalfile, width=png_width, height=png_height)
       print(p1)
@@ -222,9 +222,9 @@ map_production<-function(tidy_fish,
           scale_fill_continuous(limits=c(0, max_scale), name = fish_unit)+
           allplots
         if (is.na(fish_name)){
-          nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", all_years[y], ".png", sep="")
+          nextfile <- paste("plot_map_", levels(year_geo_taxa_fish$source_name_en)[i], "-", all_years[y], ".png", sep="")
         } else {
-          nextfile <- paste("plot_", levels(year_geo_taxa_fish$source_name_en)[i], "-", fish_name, "-", all_years[y], ".png", sep="")
+          nextfile <- paste("plot_map_", levels(year_geo_taxa_fish$source_name_en)[i], "-", fish_name, "-", all_years[y], ".png", sep="")
         }
         png(filename=nextfile, width=png_width, height=png_height)
         print(p1)
