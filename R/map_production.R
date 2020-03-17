@@ -4,8 +4,8 @@
 
 # Testing fuction:
 #tidy_fish<-tmp_fish
-#year_start=1995
-#year_end=2000
+#year_start=2005
+#year_end=2010
 #fish_var="quantity" # can also be number
 #fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
 #fish_name=NA # must be found within fish_level
@@ -17,7 +17,7 @@
 ## Other options:
 #combine_sources=TRUE
 #fish_level="species_scientific_name"
-#fish_name="Scarus forsteni"
+#fish_name="Arius spp"
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -166,7 +166,6 @@ map_production<-function(tidy_fish,
   png_height <- 1200
 
   # Plot map
-  # FIXIT need to build in warnings / errors for when specified fish_name is produced in some but not all years
   # If sources should be combined...
   if (combine_sources == TRUE){
     # First find maximum value for fish_sum and use this to standardize legend of all maps in time series

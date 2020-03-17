@@ -7,6 +7,8 @@
 #' @examples
 #' rebuild_fish("/Volumes/jgephart/FishStatR/Data/Production-Global/ZippedFiles/GlobalProduction_2019.1.0.zip")
 #' rebuild_fish("C:\\Users\\kdgor\\OneDrive - american.edu\\FAO Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
+#' rebuild_fish("K:\\FishStatR\\Data\\Production-Global\\ZippedFiles\\GlobalProduction_2019.1.0.zip")
+
 rebuild_fish <- function(path_to_zipfile) {
   require(tools) # needed for file_path_sans_ext
   require(dplyr)
