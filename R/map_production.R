@@ -1,12 +1,11 @@
 #geo_level can be country, region, continent
-#fish_var can be quantity or value
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
 #tidy_fish<-tmp_fish
 #year_start=2005
 #year_end=2010
-#fish_var="quantity" # can also be number
+#fish_var should be name of fish column to be plotted, leave in as a parameter for now, in case there's a need to change column name in the future
 #fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
 #fish_name=NA # must be found within fish_level
 #geo_level="country"
