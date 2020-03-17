@@ -90,23 +90,22 @@ graph_production<-function(tidy_fish,
   # Plot set up
   allplots <-
     theme_void()+
-    theme(axis.text.x = element_blank(),
+    theme(legend.position = "bottom",
           legend.title = element_text(size = 30),
-          legend.text = element_text(size = 25),
-          title = element_text(size = 40))
-  png_width <- 1800
-  png_height <- 1200
+          legend.text = element_text(size = 25))
+  plot_width <- 6
+  plot_height <- 6
 
   p <- ggplot(year_geo_taxa_fish) +
-    geom_bar(aes(x = reorder(get(geography), fish_sum), y = fish_sum, fill = source_name_en), stat = "identity") +
+    geom_bar(aes(x = reorder(get(geography), fish_sum), y = fish_sum, fill = source_name_en), position="stack", stat = "identity") +
     scale_fill_viridis_d() +
     coord_polar()
 
-  if (fish_level==total){
+  if (fish_level=="total"){
     nextfile = paste("plot_bar_Production_per_", geo_level, ".png", sep="")
   }
 
-  p + ggsave(filename = )
+  p + ggsave(filename = nextfile, width = plot_width, height = plot_height, units = "in")
 
 
 }
