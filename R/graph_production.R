@@ -4,7 +4,7 @@
 # Testing fuction:
 tidy_fish<-tmp_fish
 year_start=2005
-year_end=2010
+year_end=NA
 fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
 fish_name=NA # if fish_level specified, must be a name found within fish_level
 plot_as_time_series=FALSE
@@ -37,8 +37,24 @@ graph_production<-function(tidy_fish,
     setwd(output_path)
   }
 
-  dat_fish<-tidy_fish %>%
+  # FAO data country column (N = 247)
+  # FAO data country_iso3_code column (N = 260)
+  # ISO_a3 is finer-scale than country: example, Taiwan separate from China; Guam, PR separate from USA
+  # Use ISO_a3 for summarizing data
+
+
+  # Deal with countries that have no iso3 alpha codes:
+  # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
+  # Fill in iso3 alpha = SUD for iso3 numeric 736
+  dat_fish <- tidy_fish %>%
+    mutate(country_iso3_code = replace(country_iso3_code, country==736, "SDN")) %>%
+    # For Channel Islands, drop for now: some of the channel islands (Jersey, Isle of Man, Guernsey) have their own alpha codes but they're all lumped together in FAO data as iso_n3=830
+    filter(country!=830) %>%
+    # Drop iso_n3=896 (used for "Areas not elsewhere specified", aka country ID not known?)
+    filter(country!=896) %>%
+    # Filter for desired units
     filter(unit == fish_unit)
+
 
   # Filter years
   if (is.na(year_end)){
@@ -89,18 +105,26 @@ graph_production<-function(tidy_fish,
   }
 
   # Plot set up
-  allplots <-
-    theme_void()+
+  allplots <- theme_void()+
+    guides(color = guide_legend(nrow = 1)) +
     theme(legend.position = "bottom",
           legend.title = element_text(size = 30),
           legend.text = element_text(size = 25))
-  plot_width <- 6
+  plot_width <- 10
   plot_height <- 6
 
+  # arrange for data checking
+  year_geo_taxa_fish <- year_geo_taxa_fish %>%
+    arrange(desc(fish_sum))
+  # FIXIT - eventually remove LOG or consider splitting into multiple graphs with different scales
+
+  # arrange factor levels (and order of plotting) by the SUM of fish_sum by country (i.e., total production combined across all sources)
+  # reorder(get(geography), fish_sum, sum)
   p <- ggplot(year_geo_taxa_fish) +
-    geom_bar(aes(x = reorder(get(geography), fish_sum), y = fish_sum, fill = source_name_en), position="stack", stat = "identity") +
-    scale_fill_viridis_d() +
-    coord_polar()
+    geom_bar(aes(x = reorder(get(geography), log(fish_sum), sum), y = log(fish_sum), fill = source_name_en), position="stack", stat = "identity") +
+    scale_fill_viridis_d(name = "Production Source") +
+    allplots
+    #coord_polar()
 
   if (fish_level=="total"){
     nextfile = paste("plot_bar_Production_per_", geo_level, ".png", sep="")

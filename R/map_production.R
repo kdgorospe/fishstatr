@@ -48,7 +48,8 @@ map_production<-function(tidy_fish,
   # FAO data country_iso3_code column (N = 260) matches worldmap iso3_a3 (N = 235)
 
   # ISO_a3 is finer-scale than country: example, Taiwan separate from China; Guam, PR separate from USA
-  # Use iso_a3 for the merging: actually doesn't make a difference since worldmap iso_n3 and iso_a3 are both N=235
+  # Use iso_a3 for the merging: For mapping, actually doesn't make a difference since worldmap iso_n3 and iso_a3 are both N=235
+  # But stick with iso_a3 to be consistent with function "graph_production"
   # For people downloading from FishStatJ, include in instructions that this data field should be specified
 
 
