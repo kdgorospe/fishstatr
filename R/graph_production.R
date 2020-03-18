@@ -12,6 +12,7 @@ geo_level="country"
 geo_name=NA
 fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
 output_path=("~/")
+fish_var="quantity"
 # NOTE: remove option to combine_sources=TRUE/FALSE since this function will produce stacked barplots
 # NOTE: fish_var should always be quantity, i.e., name of fish column to be plotted, leave in as a parameter for now? in case it's possible to use this function for other data sources
 

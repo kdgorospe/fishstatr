@@ -2,21 +2,22 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-#tidy_fish<-tmp_fish
-#year_start=2005
-#year_end=2010
-#fish_var should be name of fish column to be plotted, leave in as a parameter for now, in case there's a need to change column name in the future
-#fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
-#fish_name=NA # must be found within fish_level
-#geo_level="country"
-#fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
-#combine_sources=FALSE
-#output_path=("~/")
-
+tidy_fish<-tmp_fish
+year_start=2005
+year_end=2010
+fish_var="quantity"
+fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
+fish_name=NA # must be found within fish_level
+geo_level="country"
+fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
+combine_sources=FALSE
+output_path=("~/")
 ## Other options:
 #combine_sources=TRUE
 #fish_level="species_scientific_name"
 #fish_name="Arius spp"
+# NOTE: fish_var should always be quantity, i.e., name of fish column to be plotted, leave in as a parameter for now? in case it's possible to use this function for other data sources
+
 
 map_production<-function(tidy_fish,
                          year_start,
@@ -43,15 +44,24 @@ map_production<-function(tidy_fish,
   }
 
   worldmap <- ne_countries(scale = "medium", returnclass = "sf")
-  # note use FAO's iso_a3 (reporting countries and territories)
-  # This is finer-scale than country: example, Taiwan separate from China; Guam, PR separate from USA
-  # i.e., work with finer scale now, can decide to aggregate later
-  # need to provide instructions for people using FishStatJ to include this as a data field before downloading the dataset
-  # worldmap has 235 iso_n3 and 235 iso_a3 codes
-  # FAO has 247 country (aka iso_n3) and 260 iso3 alpha codes - finest scale appears to be FAO's iso3 alpha codes
+  # FAO data country column (N = 247) matches worldmap iso_n3 column (N = 235)
+  # FAO data country_iso3_code column (N = 260) matches worldmap iso3_a3 (N = 235)
 
-  # Filter correct units
-  dat_fish<-tidy_fish %>%
+  # ISO_a3 is finer-scale than country: example, Taiwan separate from China; Guam, PR separate from USA
+  # Use iso_a3 for the merging: actually doesn't make a difference since worldmap iso_n3 and iso_a3 are both N=235
+  # For people downloading from FishStatJ, include in instructions that this data field should be specified
+
+
+  # Deal with countries that have no iso3 alpha codes:
+  # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
+  # Fill in iso3 alpha = SUD for iso3 numeric 736
+  dat_fish <- tidy_fish %>%
+    mutate(country_iso3_code = replace(country_iso3_code, country==736, "SDN")) %>%
+  # For Channel Islands, drop for now (FAO lumps them together with iso_n3=830, while worldmap splits them into 831 and 832)
+    filter(country!=830) %>%
+  # Drop iso_n3=896 (used for "Areas not elsewhere specified", aka country ID not known?)
+    filter(country!=896) %>%
+  # Filter for desired units
     filter(unit == fish_unit)
 
   # Filter years
@@ -82,6 +92,9 @@ map_production<-function(tidy_fish,
   # For now, remove all entries where quantity=0 (otherwise, countries are colored in as 0 as opposed to being NA)
   year_fish <- year_fish %>%
     filter(get(fish_var) != 0)
+
+
+
 
   # Now aggregate:
   # If production sources should be combined:
