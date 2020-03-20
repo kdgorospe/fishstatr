@@ -7,6 +7,8 @@ year_start=2005
 year_end=NA # FIXIT - still need to add and time series component
 fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
 fish_name=NA # if fish_level specified, must be a name found within fish_level
+# FIX IT - still need to test when fish_name is specified; also need to add flexibility for when dataset does not include all countries
+# FIX IT - clean up plotting code whereby it makes ONE plot, but if this is too big it makes one big plot followed by a number of subplots (how to make this flexible?)
 plot_as_time_series=FALSE
 geo_level="country"
 geo_name=NA
@@ -62,7 +64,7 @@ graph_production<-function(tidy_fish,
     # Filter for desired units
     filter(unit == fish_unit) %>%
     # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
-    # i.e., FIXIT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
+    # i.e., FIX IT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
     # For now, remove all entries where quantity=0 (otherwise, countries are colored in as 0 as opposed to being NA)
     filter(get(fish_var) != 0)
 
@@ -108,7 +110,7 @@ graph_production<-function(tidy_fish,
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
       droplevels()
-  } else if (fish_level != "total"){ # If grouped fish is desired: # FIXIT - still need to test this portion
+  } else if (fish_level != "total"){ # If grouped fish is desired:
     if (fish_name %in% year_fish[[fish_level]])
       year_geo_taxa_fish <- year_fish %>%
         filter(get(fish_level) == fish_name) %>%
