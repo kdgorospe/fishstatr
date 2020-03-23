@@ -2,16 +2,16 @@
 #fish_level can be total, family, order, isscaap, or species
 
 # Testing fuction:
-tidy_fish<-tmp_fish
-year_start=2005
-year_end=2010
-fish_var="quantity"
-fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
-fish_name=NA # must be found within fish_level
-geo_level="country"
-fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
-combine_sources=FALSE
-output_path=("~/")
+#tidy_fish<-tmp_fish
+#year_start=2005
+#year_end=2010
+#fish_var="quantity"
+#fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
+#fish_name=NA # must be found within fish_level
+#geo_level="country"
+#fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
+#combine_sources=FALSE
+#output_path=("~/")
 ## Other options:
 #combine_sources=TRUE
 #fish_level="species_scientific_name"

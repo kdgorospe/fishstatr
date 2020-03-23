@@ -2,21 +2,21 @@
 # Or plot time series for given geo_name(s) within geo_level
 
 # Testing fuction:
-tidy_fish<-tmp_fish
-year_start=2005
-year_end=NA # FIXIT - still need to add and time series component
-fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
-fish_name=NA # if fish_level specified, must be a name found within fish_level
-# FIX IT - still need to test when fish_name is specified; also need to add flexibility for when dataset does not include all countries
+#tidy_fish<-tmp_fish
+#one_year=2005
+#year_end=NA # FIXIT - remove time series component; create separate function for time series (SOFIA report)
+#fish_level="total"; # can also be isscaap_group, family, or species_scientific_name, but must match column name
+#fish_name=NA # if fish_level specified, must be a name found within fish_level
+# FIX IT - still need to test when fish_name is specified
 # FIX IT - clean up plotting code whereby it makes ONE plot, but if this is too big it makes one big plot followed by a number of subplots (how to make this flexible?)
-plot_as_time_series=FALSE
-geo_level="country"
-geo_name=NA
-fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
-output_path=("~/")
-fish_var="quantity"
-combine_aquaculture=FALSE
-incl_CHN=TRUE
+#plot_as_time_series=FALSE
+#geo_level="country"
+#geo_name=NA
+#fish_unit="t" # can also be "no"; used for whales, seals, walruses, crocodiles/alligators
+#output_path=("~/")
+#fish_var="quantity"
+#combine_aquaculture=FALSE
+#incl_CHN=TRUE
 # NOTE: removed option combine_sources=TRUE/FALSE since this function will produce stacked barplots
 # NOTE: fish_var should always be quantity, i.e., name of fish column to be plotted, leave in as a parameter for now? in case it's possible to use this function for other data sources
 
@@ -27,14 +27,15 @@ incl_CHN=TRUE
 #rm(list = ls()[!(ls() %in% c('keepThis','andThis'))])
 
 graph_production<-function(tidy_fish,
-                           year_start,
-                           year_end=NA,
+                           one_year,
                            fish_var="quantity",
                            fish_level="total",
                            fish_name=NA,
                            fish_unit="t",
                            geo_level="country",
-                           output_path="~/"){
+                           output_path="~/",
+                           combine_aquaculture=TRUE,
+                           incl_CHN=TRUE){
   require(dplyr)
   require(ggplot2)
   require(stringr)
@@ -66,9 +67,11 @@ graph_production<-function(tidy_fish,
     # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
     # i.e., FIX IT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
     # For now, remove all entries where quantity=0 (otherwise, countries are colored in as 0 as opposed to being NA)
-    filter(get(fish_var) != 0)
+    filter(get(fish_var) != 0) %>%
+    # Filter for specific year
+    filter(year == one_year)
 
-  # Combine aquaculture sources
+  # If desired, combine aquaculture sources
   if (combine_aquaculture==TRUE) {
     dat_fish <- dat_fish %>%
       mutate(source_name_en = as.character(source_name_en)) %>%
@@ -78,14 +81,6 @@ graph_production<-function(tidy_fish,
 
 
 
-  # Filter years
-  if (is.na(year_end)){
-    all_years <- year_start
-  } else {
-    all_years <- seq(from = year_start, to = year_end, by = 1)
-  }
-  year_fish <- dat_fish %>%
-    filter(year %in% all_years)
 
 
   # Match column name to geo_level parameter
@@ -105,14 +100,14 @@ graph_production<-function(tidy_fish,
 
 
   if (fish_level == "total"){
-    year_geo_taxa_fish <- year_fish %>%
+    year_geo_taxa_fish <- dat_fish %>%
       group_by(year, get(geography), source_name_en) %>%
       summarize(fish_sum = sum(get(fish_var))) %>%
       rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
       droplevels()
   } else if (fish_level != "total"){ # If grouped fish is desired:
-    if (fish_name %in% year_fish[[fish_level]])
-      year_geo_taxa_fish <- year_fish %>%
+    if (fish_name %in% dat_fish[[fish_level]])
+      year_geo_taxa_fish <- dat_fish %>%
         filter(get(fish_level) == fish_name) %>%
         group_by(year, get(geography), source_name_en) %>%
         summarize(fish_sum = sum(get(fish_var))) %>%
@@ -162,11 +157,23 @@ graph_production<-function(tidy_fish,
   start_split <- floor(seq(from = 1, to = length(country_order), length(country_order)/3))
   end_split <- c(start_split[-1]-1, length(country_order))
 
+
+  if (is.na(fish_name) & incl_CHN==TRUE){
+    plot_title <- paste("Global total seafood production in", one_year, sep = " ")
+  } else if (is.na(fish_name) & incl_CHN==FALSE){
+    plot_title <- paste("Global total seafood production in", one_year, "excluding China", sep = " ")
+  } else if (!is.na(fish_name) & incl_CHN==TRUE){
+    plot_title <- paste("Global total seafood production of", tolower(fish_name), "in", one_year, sep=" ")
+  } else if (!is.na(fish_name) & incl_CHN==TRUE){
+    plot_title <- paste("Global total seafood production of", tolower(fish_name), "in", one_year, "excluding China", sep=" ")
+  }
+
   # First plot all countries together
   # arrange factor levels (and order of plotting) by the SUM of fish_sum by country (i.e., total production combined across all sources)
   # reorder(get(geography), fish_sum, sum)
   p <- ggplot(year_geo_taxa_fish) +
     geom_bar(aes(x = reorder(get(geography), desc(fish_sum), sum), y = fish_sum, fill = source_name_en), position="stack", stat = "identity") +
+    labs(title=plot_title) +
     scale_y_continuous(expand = expand_scale(mult = c(0, 0.1))) +
                        #labels = function(x) format(x, scientific = TRUE)) +
     scale_fill_viridis_d(name = "Production Source",
@@ -178,11 +185,17 @@ graph_production<-function(tidy_fish,
     theme(axis.text.x=element_blank(),
     axis.ticks.x=element_blank())
 
-  if (fish_level=="total"){
-    nextfile = paste("plot_bar_Production_per_", geo_level, ".png", sep="")
+  if (is.na(fish_name) & incl_CHN==TRUE){
+    plotfile <- paste("plot_bar_Total_Production_", one_year, "_full.png", sep = "")
+  } else if (!is.na(fish_name) & incl_CHN==TRUE){
+    plotfile <- paste("plot_bar_", fish_name, "_Production_", one_year, "_full.png", sep="")
+  } else if (is.na(fish_name) & incl_CHN==FALSE){
+    plotfile <- paste("plot_bar_Total_Production_", one_year, "_full_exclCHN.png", sep = "")
+  } else if (!is.na(fish_name) & incl_CHN==FALSE){
+    plotfile <- paste("plot_bar_", fish_name, "_Production_", one_year, "_full_exclCHN.png", sep="")
   }
 
-  p + ggsave(filename = nextfile, width = plot_width, height = plot_height, units = "in")
+  p + ggsave(filename = plotfile, width = plot_width, height = plot_height, units = "in")
 
   # Plot subsets of countries
   # arrange factor levels (and order of plotting) by the SUM of fish_sum by country (i.e., total production combined across all sources)
@@ -192,8 +205,11 @@ graph_production<-function(tidy_fish,
     country_list <- country_order[start_split[i]:end_split[i]]
     sub_plot_dat <- year_geo_taxa_fish %>%
       filter(country_iso3_code %in% country_list)
+
+
     p <- ggplot(sub_plot_dat) +
       geom_bar(aes(x = reorder(get(geography), desc(fish_sum), sum), y = fish_sum, fill = source_name_en), position="stack", stat = "identity") +
+      labs(title=plot_title) +
       scale_y_continuous(expand = expand_scale(mult = c(0, 0.1))) +
       scale_fill_viridis_d(name = "Production Source",
                            guide = guide_legend(nrow = 2)) +
@@ -202,11 +218,16 @@ graph_production<-function(tidy_fish,
       theme(axis.text.x = element_text(size = 10, angle = 90, vjust = 0.5))
 
 
-
-
-    if (fish_level=="total"){
-      nextfile = paste("plot_bar_Production_per_", geo_level, "_", i, ".png", sep="")
+    if (is.na(fish_name) & incl_CHN==TRUE){
+      nextfile <- paste("plot_bar_Total_Production_", one_year, "_", i, ".png", sep = "")
+    } else if (!is.na(fish_name) & incl_CHN==TRUE){
+      nextfile <- paste("plot_bar_", fish_name, "_Production_", one_year, "_", i, ".png", sep="")
+    } else if (is.na(fish_name) & incl_CHN==FALSE){
+      nextfile <- paste("plot_bar_Total_Production_", one_year, "_", i, "_exclCHN.png", sep = "")
+    } else if (!is.na(fish_name) & incl_CHN==FALSE){
+      nextfile <- paste("plot_bar_", fish_name, "_Production_", one_year, "_", i, "_exclCHN.png", sep="")
     }
+
 
     p + ggsave(filename = nextfile, width = plot_width, height = plot_height, units = "in")
 
