@@ -1,3 +1,18 @@
+tidy_fish=tmp_fish
+year_start=2012
+year_end=NA
+fish_var="quantity"
+fish_level="scientific_species_name"
+fish_name="all"
+fish_unit="t"
+geo_level="country"
+geo_name="all"
+output_path="~/"
+combine_aquaculture=TRUE
+incl_CHN=TRUE
+
+
+
 ts_production_by_source <- function(tidy_fish,
                           year_start,
                           year_end=NA,
@@ -10,7 +25,7 @@ ts_production_by_source <- function(tidy_fish,
                           combine_aquaculture=TRUE,
                           incl_CHN=TRUE) {
 
-  # FILTERING and CLEANING: MOVE THIS INTO ANOTHER FUNCTION?
+  # UNIVERSAL FILTERING and CLEANING: MOVE THIS INTO ANOTHER FUNCTION?
   # Deal with countries that have no iso3 alpha codes:
   # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
   # Fill in iso3 alpha = SUD for iso3 numeric 736
@@ -34,9 +49,38 @@ ts_production_by_source <- function(tidy_fish,
   } else {
     all_years <- seq(from = year_start, to = year_end, by = 1)
   }
-  year_fish <- dat_fish %>%
+  dat_fish <- dat_fish %>%
     filter(year %in% all_years)
 
+  # If desired, combine aquaculture sources
+  if (combine_aquaculture==TRUE) {
+    dat_fish <- dat_fish %>%
+      mutate(source_name_en = as.character(source_name_en)) %>%
+      mutate(source_name_en = replace(source_name_en, str_detect(source_name_en, "Aquaculture"), "Aquaculture production")) %>%
+      mutate(source_name_en = as.factor(source_name_en))
+  }
+
+  # Match column name to geo_level parameter
+  # In tmp_fish there are more levels in iso3 than in "country"; for now, use iso3 as the reporting level
+  # other notes: un_a3 in worldmap == "country" in tmp_fish == code in FishStatJ (3 digit UNM49 country ID number)
+  if (geo_level == "country" | country == "all"){
+    geography <- "country_iso3_code"
+  } else if (geo_level == "continent"){
+    geography<-"continent_group"
+  } else if (geo_level == "region"){
+    geography<-"georegion_group"
+  }
+
+  # AGGREGATE:
+  if(fish_name=="all" & geo_name=="all"){
+    year_geo_taxa_fish <- dat_fish %>%
+      group_by(year, get(geography), species_scientific_name, source_name_en) %>%
+      summarize(fish_sum = sum(get(fish_var))) %>%
+      rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
+      droplevels()
+  }
+
+  # histogram?
 
   # if range of years given create:
   # LINE GRAPH - each line represents country x species combo tracing percent aquaculture vs capture through time

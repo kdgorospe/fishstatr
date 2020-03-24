@@ -79,10 +79,6 @@ graph_production<-function(tidy_fish,
       mutate(source_name_en = as.factor(source_name_en))
   }
 
-
-
-
-
   # Match column name to geo_level parameter
   # In tmp_fish there are more levels in iso3 than in "country"; for now, use iso3 as the reporting level
   # other notes: un_a3 in worldmap == "country" in tmp_fish == code in FishStatJ (3 digit UNM49 country ID number)
@@ -94,11 +90,7 @@ graph_production<-function(tidy_fish,
     geography<-"georegion_group"
   }
 
-
-
-
-
-
+  # AGGREGATE
   if (fish_level == "total"){
     year_geo_taxa_fish <- dat_fish %>%
       group_by(year, get(geography), source_name_en) %>%
