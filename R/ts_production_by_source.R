@@ -8,4 +8,42 @@ ts_production_by_source <- function(tidy_fish,
                           country,
                           output_path="~/",
                           combine_aquaculture=TRUE,
-                          incl_CHN=TRUE)
+                          incl_CHN=TRUE) {
+
+  # FILTERING and CLEANING: MOVE THIS INTO ANOTHER FUNCTION?
+  # Deal with countries that have no iso3 alpha codes:
+  # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
+  # Fill in iso3 alpha = SUD for iso3 numeric 736
+  dat_fish <- tidy_fish %>%
+    mutate(country_iso3_code = replace(country_iso3_code, country==736, "SDN")) %>%
+    # For Channel Islands, drop for now: some of the channel islands (Jersey, Isle of Man, Guernsey) have their own alpha codes but they're all lumped together in FAO data as iso_n3=830
+    filter(country!=830) %>%
+    # Drop iso_n3=896 (used for "Areas not elsewhere specified", aka country ID not known?)
+    filter(country!=896) %>%
+    # Filter for desired units
+    filter(unit == fish_unit) %>%
+    # NOTE: in some cases, countries explicitly report "zero" for certain groups of fish and/or sources, while others are NA (likely also zero?)
+    # i.e., FIX IT: Ask JG/FAO, is there a difference between countries that explicitly report zeroes vs. NAs?
+    # For now, remove all entries where quantity=0 (otherwise, countries are colored in as 0 as opposed to being NA)
+    filter(get(fish_var) != 0)
+
+
+  # Filter years
+  if (is.na(year_end)){
+    all_years <- year_start
+  } else {
+    all_years <- seq(from = year_start, to = year_end, by = 1)
+  }
+  year_fish <- dat_fish %>%
+    filter(year %in% all_years)
+
+
+  # if range of years given create:
+  # LINE GRAPH - each line represents country x species combo tracing percent aquaculture vs capture through time
+  # DENSITY DISTRIBUTION THROUGH TIME - can use this to estimate a cutoff point?
+
+  # if only one year given create:
+  # SCATTER PLOTS - each dot represents country x species combo of percent aquaculture vs capture through time
+  # Output table of values (using same year of current analysis - 2012) to merge with S_net
+
+}
