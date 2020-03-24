@@ -1,0 +1,11 @@
+ts_production_by_source <- function(tidy_fish,
+                          year_start,
+                          year_end=NA,
+                          fish_var="quantity",
+                          fish_level="total",
+                          fish_name=NA,
+                          fish_unit="t",
+                          country,
+                          output_path="~/",
+                          combine_aquaculture=TRUE,
+                          incl_CHN=TRUE)
