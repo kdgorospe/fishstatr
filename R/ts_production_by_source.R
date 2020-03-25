@@ -2,7 +2,7 @@ tidy_fish=tmp_fish
 #year_start=2012
 #year_end=NA
 year_start=2000
-year_end=2017
+year_end=2005
 fish_var="quantity"
 fish_level="species_scientific_name"
 fish_name="all"
@@ -97,8 +97,9 @@ ts_production_by_source <- function(tidy_fish,
   join_fish <- fish_level
   names(join_fish) <- fish_level
 
-  # if desired, calculate percentages
+  # if desired, calculate proportions
   if(percent_capture==TRUE){
+    # year_geo_taxa_totals sums production (aquaculture + capture) within year, country, taxa
     year_geo_taxa_totals <- year_geo_taxa_fish %>%
       group_by(year, get(geography), get(fish_level)) %>%
       #group_by(year, get(geography)) %>%
@@ -107,38 +108,44 @@ ts_production_by_source <- function(tidy_fish,
       rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
       rename(!!fish_level := 'get(fish_level)')
 
+    # year_geo_taxa_capture only keeps capture production, drops all aquaculture production
     year_geo_taxa_capture<-year_geo_taxa_fish %>%
       filter(source_name_en=="Capture production")
 
-    year_geo_taxa_percent <- year_geo_taxa_totals %>%
+    # year_geo_taxa_prop: match fish_sum column of just capture data (i.e., total amt of capture) back to totals data
+    # rows with no matching capture data are filled in as NAs and replaced with zeroes - i.e., years where only aquaculture was produced
+    year_geo_taxa_prop <- year_geo_taxa_totals %>%
       left_join(year_geo_taxa_capture, by=c("year", join_geo, join_fish)) %>%
       rename(fish_capture = fish_sum) %>%
       mutate(fish_capture = replace(fish_capture, is.na(fish_capture), 0)) %>%
       mutate(fish_plot = fish_capture / fish_all_sources) %>%
       arrange(desc(fish_plot, get(geography), get(fish_level)))
 
-    plot_dat <- year_geo_taxa_percent
+    plot_dat <- year_geo_taxa_prop
   }
 
 
-
-  # Set up plotting theme
-  plot_theme <- theme(panel.border = element_blank(),
-                      panel.background = element_blank(),
-                      legend.position = "bottom",
-                      legend.title = element_text(size = 16),
-                      legend.text = element_text(size = 14),
-                      legend.key = element_rect(fill=NA),
-                      axis.line = element_line(),
-                      axis.title.y = element_text(size = 16),
-                      axis.text.y = element_text(size = 14),
-                      axis.title.x = element_text(size = 16),)
-
-  # if only one year provided, plot scatterplot
+  # if only one year provided, plot scatterplot - snapshot
   if (is.na(year_end)) {
-    p <- ggplot(data = plot_dat, aes(y = fish_plot, x = get(geography), size = fish_all_sources)) +
-      geom_point(alpha = 0.2, color = "purple") +
-      scale_y_continuous(expand = expand_scale(mult = c(0, 0))) +
+    # Set up plotting theme
+    plot_theme <- theme(panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        legend.position = "bottom",
+                        legend.title = element_text(size = 16),
+                        legend.text = element_text(size = 14),
+                        legend.key = element_rect(fill=NA),
+                        axis.line.y = element_line(),
+                        axis.line.x = element_blank(),
+                        axis.title.y = element_text(size = 16),
+                        axis.text.y = element_text(size = 14),
+                        axis.title.x = element_text(size = 16),)
+
+    p <- ggplot(data = plot_dat, aes(y = fish_plot, x = get(geography))) +
+      geom_point(alpha = 0.2, color = "purple", aes(size = fish_all_sources)) +
+      #geom_jitter(alpha = 0.2, color = "purple", width = 10, aes(size = fish_all_sources)) +
+      #geom_violin() +
+      scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02))) +
+      geom_hline(yintercept = 0) +
       labs(y = "proportion wild capture", x = geo_level) +
       scale_size_continuous(breaks = signif(seq(0, max(plot_dat$fish_all_sources), length.out = 6), digits = 2),
                             guide = guide_legend(title = "total production (wild + aquaculture)", nrow=2),
@@ -146,18 +153,87 @@ ts_production_by_source <- function(tidy_fish,
       plot_theme +
       theme(axis.text.x=element_blank(),
             axis.ticks.x=element_blank())
-      #plot_theme
-      #geom_violin() +
-      #geom_jitter(alpha = 0.2, height = 0.01, width = 1000000) # add jitter to see concentration of points around 1 and 0
     p
   }
 
+
   # if time series provided, plot lines
   if (!is.na(year_end)) {
-    p <- ggplot(data = plot_dat, aes(y = fish_plot, x = year)) +
-      geom_line(alpha = 0.2)
-    #geom_jitter(alpha = 0.2, height = 0.1, width = 100000)
-    p
+    # for time series, filter out species where
+    sd_seq = c(seq(0, 0.1, 0.01))
+
+    for(i in 2:length(sd_seq)){
+      sd_cutoff = sd_seq[i]
+      sd_start = sd_seq[i-1]
+      sd_plot <- plot_dat %>%
+        group_by(get(geography), get(fish_level)) %>%
+        summarise(var_prop = var(fish_plot, na.rm = TRUE),
+                  sd_prop = sd(fish_plot, na.rm = TRUE),
+                  mean_prop = mean(fish_plot, na.rm = TRUE),
+                  all_year_total = sum(fish_all_sources)) %>%
+        #filter(mean_prop!=0 & mean_prop!=1) %>%
+        arrange(desc(sd_prop)) %>%
+        filter(sd_prop >= sd_start & sd_prop <= sd_cutoff) %>%
+        rename(!!geography := 'get(geography)') %>% # using !! and := tells dplyr to rename based on the expression of geography
+        rename(!!fish_level := 'get(fish_level)')
+
+      # Does variation in production source biased towards capture vs aquaculture?
+      # i.e., is the following plot pretty symmetrical
+      sd1 <- ggplot(sd_plot, aes(x = mean_prop, y = sd_prop))+
+        #geom_point() +
+        geom_jitter(height = 0.025, width = 0.015) +
+        xlim(-0.1, 1.1) +
+        ylim(-0.1, 1.1) +
+        #scale_x_continuous(expand = expand_scale(mult = c(0, 0.1))) +
+        #scale_y_continuous(expand = expand_scale(mult = c(0, 0.1))) +
+        labs(title = paste("sd cutoff =", sd_cutoff, sep=" "),
+             x = "mean across years (proportion from capture fishery)",
+             y = "st dev across years (proportion from capture fishery)")
+
+      sd1_file <- paste("plot_sd_cutoff_", sd_cutoff, "_sd_vs_mean_proportion_captured.png", sep="")
+
+      sd1 + ggsave(filename = sd1_file, width = 5.5, height = 4.25, units = "in")
+
+      size_scale <- max(plot_dat$fish_all_sources)
+      # Does variation in production source biased by total production?
+      sd2 <- ggplot(sd_plot, aes(x = all_year_total, y = sd_prop))+
+        geom_point() +
+        #geom_jitter(height = 0.05, width = 0.05) +
+        #ylim(-0.1, 1.1) +
+        #xlim(-0.1, size_scale*0.1)+
+        labs(title = paste("sd cutoff =", sd_cutoff, sep=" "),
+             x = "production (t)",
+             y = "st dev across years (proportion from capture fishery)")
+
+      sd2_file <- paste("plot_sd_cutoff_", sd_cutoff, "_sd_vs_total_production.png", sep="")
+
+      sd2 + ggsave(filename = sd2_file, width = 5.5, height = 4.25, units = "in")
+
+
+      # merge sd_plot (filtered by cutoff SD) back with plot_dat, i.e., only keep data above SD cutoff
+      plot_years <- sd_plot %>%
+        left_join(plot_dat, by = c(join_geo, join_fish))
+
+
+      ts <- ggplot(data = plot_years, aes(y = fish_plot,
+                                          x = year,
+                                          group = interaction(get(geography), get(fish_level)))) +
+        geom_line(size = 0.1) +
+        geom_point(aes(size = fish_all_sources)) +
+        scale_size_continuous("points",
+                              guide = guide_legend(title = "total production (wild + aquaculture)"),
+                              labels = function(x) format(x, scientific = TRUE)) +
+        labs(title = paste("sd cutoff =", sd_cutoff, sep=" "),
+             x = "production (t)",
+             y = "st dev across years (proportion from capture fishery)") +
+        theme(legend.position = "bottom")
+
+
+      ts_file <- paste("plot_sd_cutoff_", sd_cutoff, "_proportion_from_capture_time_series.png", sep = "")
+
+      ts + ggsave(filename = ts_file, width = 5.5, height = 4.25, units = "in")
+    }
+
   }
 
 
