@@ -1,8 +1,8 @@
 tidy_fish=tmp_fish
-#year_start=2012
-#year_end=NA
-year_start=2000
-year_end=2005
+year_start=2012
+year_end=NA
+#year_start=2000
+#year_end=2005
 fish_var="quantity"
 fish_level="species_scientific_name"
 fish_name="all"
@@ -149,11 +149,53 @@ ts_production_by_source <- function(tidy_fish,
       labs(y = "proportion wild capture", x = geo_level) +
       scale_size_continuous(breaks = signif(seq(0, max(plot_dat$fish_all_sources), length.out = 6), digits = 2),
                             guide = guide_legend(title = "total production (wild + aquaculture)", nrow=2),
-                            labels = function(x) format(x, scientific = TRUE)) +
+                            labels = function(x) format(x, scientific = TRUE),
+                            range = c(1,10)) +
       plot_theme +
       theme(axis.text.x=element_blank(),
             axis.ticks.x=element_blank())
     p
+
+    # Try to determine a cutoff value for when to assign something as fully capture vs aquaculture
+    source_seq <- c(seq(0.01, 0.1, by = 0.01),0.15, 0.2, 0.25, 0.5, 0.75)
+    swept_source_dat <- NA
+    for (i in 1:length(source_seq)){
+      source_cutoff = source_seq[i]
+
+      swept_aqua <- plot_dat %>%
+        # by definition, 0s and 1s will be fully assigned to aqua vs capture
+        filter(fish_plot < 1 & fish_plot > 0) %>%
+        # by definition, anything greater than or equal to 1-cutoff will be assigned fully to capture
+        filter(fish_plot >= (1-source_cutoff)) %>%
+        mutate(missing_aqua = fish_all_sources - fish_capture)
+
+      swept_capture <- plot_dat %>%
+        # by definition, 0s and 1s will be fully assigned to aqua vs capture
+        filter(fish_plot < 1 & fish_plot > 0) %>%
+        # by definition, anything less than or equal to 0+source_cutoff will be assigned fully to aquaculture
+        filter(fish_plot <= (0+source_cutoff)) %>%
+        mutate(missing_capture = fish_capture)
+
+      missing_source_i <- sum(swept_aqua$missing_aqua) + sum(swept_capture$missing_capture)
+
+      next_i <- c(source_cutoff, missing_source_i, i)
+
+      swept_source_dat <- as.data.frame(rbind(swept_source_dat, next_i))
+    }
+
+    names(swept_source_dat) <- c("source_cutoff", "missing_source_quantity", "i")
+    swept_source_dat <- swept_source_dat[-1,]
+    rownames(swept_source_dat) <- seq(1, dim(swept_source_dat)[1], 1)
+
+
+
+    swept_plot <- ggplot(data = swept_source_dat, aes(y = missing_source_quantity, x = source_cutoff)) +
+      geom_line() +
+      labs(y = "source cutoff", x = "quantity (t) of mislabelled source")
+
+    swept_plot
+
+
   }
 
 
