@@ -35,6 +35,7 @@ ts_production_by_source <- function(tidy_fish,
   # Deal with countries that have no iso3 alpha codes:
   # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
   # Fill in iso3 alpha = SUD for iso3 numeric 736
+  # FIX IT - this should be saved as a function in a separate .R file
   dat_fish <- tidy_fish %>%
     mutate(country_iso3_code = replace(country_iso3_code, country==736, "SDN")) %>%
     # For Channel Islands, drop for now: some of the channel islands (Jersey, Isle of Man, Guernsey) have their own alpha codes but they're all lumped together in FAO data as iso_n3=830
@@ -119,13 +120,16 @@ ts_production_by_source <- function(tidy_fish,
       rename(fish_capture = fish_sum) %>%
       mutate(fish_capture = replace(fish_capture, is.na(fish_capture), 0)) %>%
       mutate(fish_plot = fish_capture / fish_all_sources) %>%
-      arrange(desc(fish_plot, get(geography), get(fish_level)))
+      arrange(desc(fish_plot, get(geography), get(fish_level))) %>%
+      select(-source_name_en)
 
     plot_dat <- year_geo_taxa_prop
   }
 
 
   # if only one year provided, plot scatterplot - snapshot
+  ## FIX IT - check all axis labels
+  ## FIX IT - consider making "mislabelled" plot based on relative quantities (% of total production that year)
   if (is.na(year_end)) {
     # Set up plotting theme
     plot_theme <- theme(panel.border = element_blank(),
@@ -157,7 +161,8 @@ ts_production_by_source <- function(tidy_fish,
     p
 
     # Try to determine a cutoff value for when to assign something as fully capture vs aquaculture
-    source_seq <- c(seq(0.01, 0.1, by = 0.01),0.15, 0.2, 0.25, 0.5, 0.75)
+    #source_seq <- c(seq(0.01, 0.1, by = 0.01),0.15, 0.2, 0.25, 0.5, 0.75)
+    source_seq <- seq(0.01, 0.5, by = 0.01)
     swept_source_dat <- NA
     for (i in 1:length(source_seq)){
       source_cutoff = source_seq[i]
@@ -202,7 +207,7 @@ ts_production_by_source <- function(tidy_fish,
   # if time series provided, plot lines
   if (!is.na(year_end)) {
     # for time series, filter out species where
-    sd_seq = c(seq(0, 0.1, 0.01))
+    sd_seq = c(seq(0, 0.4, 0.1))
 
     for(i in 2:length(sd_seq)){
       sd_cutoff = sd_seq[i]
