@@ -1,6 +1,15 @@
+# Function for visualizing the proportion of each species' production in terms of aquaculture vs wild capture:
+# If one year provided, produces:
+# 1 - bubbleplot for all species and countries with point size scaled to proportion produced by wild capture
+# 2 - plot for visualizing how the cutoff value for ignoring alternative production source affects the quantity of mislabelled production sources
+# FIX IT - calculate proportion aquaculture instead of proportion capture (FAO SOFIA report frames it in terms of aquaculture production, increasing globally through time)
+
+# If range of years is provided, produces plots for visualizing species changes through time in terms of the proportion produced by wild capture
+# FIx IT - all titles show sd cutoff, but should actually be sd RANGE (0 to 0.1, 0.1 to 0.2, 0.2 to 0.3 etc)
+
 tidy_fish=tmp_fish
 year_start=2012
-year_end=2015
+year_end=NA
 #year_start=2000
 #year_end=2005
 fish_var="quantity"
@@ -15,22 +24,32 @@ incl_CHN=TRUE
 percent_capture=TRUE
 
 
-
 ts_production_by_source <- function(tidy_fish,
-                          year_start,
-                          year_end=NA,
-                          fish_var="quantity",
-                          fish_level="total",
-                          fish_name=NA,
-                          fish_unit="t",
-                          country,
-                          output_path="~/",
-                          combine_aquaculture=TRUE,
-                          incl_CHN=TRUE) {
+                                    year_start,
+                                    year_end=NA,
+                                    fish_var="quantity",
+                                    fish_level="total",
+                                    fish_name=NA,
+                                    fish_unit="t",
+                                    country,
+                                    output_path="~/",
+                                    combine_aquaculture=TRUE,
+                                    incl_CHN=TRUE) {
 
   require(dplyr)
   require(ggplot2)
   require(stringr)
+
+
+
+  if (is.na(output_path)) {
+    outdir<-getwd()
+    setwd(outdir)
+  } else {
+    setwd(output_path)
+  }
+
+
   # UNIVERSAL FILTERING and CLEANING: MOVE THIS INTO ANOTHER FUNCTION?
   # Deal with countries that have no iso3 alpha codes:
   # For Sudan, country column (aka iso numeric code) changed from 736 to 729 after year 2011
@@ -283,20 +302,5 @@ ts_production_by_source <- function(tidy_fish,
 
   }
 
-
-
-
-
-
-
-  # histogram?
-
-  # if range of years given create:
-  # LINE GRAPH - each line represents country x species combo tracing percent aquaculture vs capture through time
-  # DENSITY DISTRIBUTION THROUGH TIME - can use this to estimate a cutoff point?
-
-  # if only one year given create:
-  # SCATTER PLOTS - each dot represents country x species combo of percent aquaculture vs capture through time
-  # Output table of values (using same year of current analysis - 2012) to merge with S_net
 
 }
