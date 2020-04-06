@@ -1,3 +1,6 @@
+# PRODUCE bar plot through time of wild vs aquaculture capture for a specific country/geo_level and specific species/fish_level
+# See Figure 7 from SOFIA 2018 report
+
 tidy_fish=tmp_fish
 year_start=2012
 year_end=2015
@@ -8,11 +11,11 @@ fish_level="species_scientific_name"
 fish_name="all"
 fish_unit="t"
 geo_level="country"
-geo_name="all"
+geo_name="USA"
 output_path="~/"
 combine_aquaculture=TRUE
 incl_CHN=TRUE
-percent_capture=TRUE
+percent_aqua=TRUE
 
 
 
@@ -24,7 +27,7 @@ ts_production_by_source <- function(tidy_fish,
                           fish_name=NA,
                           fish_unit="t",
                           country,
-                          output_path="~/",
+                          output_path=NA,
                           combine_aquaculture=TRUE,
                           incl_CHN=TRUE) {
 

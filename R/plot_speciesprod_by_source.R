@@ -32,7 +32,7 @@ ts_production_by_source <- function(tidy_fish,
                                     fish_name=NA,
                                     fish_unit="t",
                                     country,
-                                    output_path="~/",
+                                    output_path=NA,
                                     combine_aquaculture=TRUE,
                                     incl_CHN=TRUE) {
 

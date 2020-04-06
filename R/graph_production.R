@@ -33,7 +33,7 @@ graph_production<-function(tidy_fish,
                            fish_name=NA,
                            fish_unit="t",
                            geo_level="country",
-                           output_path="~/",
+                           output_path=NA,
                            combine_aquaculture=TRUE,
                            incl_CHN=TRUE){
   require(dplyr)
