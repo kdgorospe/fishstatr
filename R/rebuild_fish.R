@@ -126,5 +126,5 @@ rebuild_fish <- function(path_to_zipfile) {
     # Expected warning: Coerces from factor to character because time_series$SYMBOL and CL_FI_SYMBOL.csv column "symbol" have diff number of factors
   }
 
-  time_series_join
+  return(time_series_join)
 }
