@@ -1,22 +1,22 @@
 # PRODUCE bar plot through time of wild vs aquaculture capture for a specific country/geo_level and specific species/fish_level
 # See Figure 7 from SOFIA 2018 report
 
-tidy_fish=tmp_fish
-year_start=2012
-year_end=2015
+#tidy_fish=tmp_fish
+#year_start=2012
+#year_end=2015
 #year_start=2000
 #year_end=2005
-fish_var="quantity"
-fish_level="species_scientific_name" # can also be set to total, sum of all seafood production (i.e., no taxa aggregation)
-fish_name="all" # all means produce all aggregation units (e.g., all species), rather than specific one
+#fish_var="quantity"
+#fish_level="species_scientific_name" # can also be set to total, sum of all seafood production (i.e., no taxa aggregation)
+#fish_name="all" # all means produce all aggregation units (e.g., all species), rather than specific one
 # FIX IT - make sure that if fish_level==total and fish_name is also specified, that this doesn't break code
-fish_unit="t"
-geo_level="country" # can also be set to "all" - i.e., global production (i.e., no geographic aggregation)
-geo_name="USA"
-output_path="~/"
-combine_aquaculture=TRUE
-incl_CHN=TRUE
-percent_aqua=TRUE # FIX IT - make this an option where if FALSE, it calculate percent wild capture
+#fish_unit="t"
+#geo_level="country" # can also be set to "all" - i.e., global production (i.e., no geographic aggregation)
+#geo_name="USA"
+#output_path="~/"
+#combine_aquaculture=TRUE
+#incl_CHN=TRUE
+#percent_aqua=TRUE # FIX IT - make this an option where if FALSE, it calculate percent wild capture
 
 
 
@@ -177,14 +177,6 @@ ts_production_by_source <- function(tidy_fish,
       ts + ggsave(filename = ts_file, width = 5.5, height = 4.25, units = "in")
     }
 
-  }
-
-
-
-
-
-
-
   # histogram?
 
   # if range of years given create:
@@ -195,4 +187,10 @@ ts_production_by_source <- function(tidy_fish,
   # SCATTER PLOTS - each dot represents country x species combo of percent aquaculture vs capture through time
   # Output table of values (using same year of current analysis - 2012) to merge with S_net
 
+
 }
+
+
+
+
+
