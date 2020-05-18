@@ -7,21 +7,21 @@
 # If range of years is provided, produces plots for visualizing species changes through time in terms of the proportion produced by wild capture
 # FIx IT - all titles show sd cutoff, but should actually be sd RANGE (0 to 0.1, 0.1 to 0.2, 0.2 to 0.3 etc)
 
-tidy_fish=tmp_fish
-year_start=2012
-year_end=NA
+#tidy_fish=tmp_fish
+#year_start=2012
+#year_end=NA
 #year_start=2000
 #year_end=2005
-fish_var="quantity"
-fish_level="species_scientific_name"
-fish_name="all"
-fish_unit="t"
-geo_level="country"
-geo_name="all"
-output_path="~/"
-combine_aquaculture=TRUE
-incl_CHN=TRUE
-percent_capture=TRUE
+#fish_var="quantity"
+#fish_level="species_scientific_name"
+#fish_name="all"
+#fish_unit="t"
+#geo_level="country"
+#geo_name="all"
+#output_path="~/"
+#combine_aquaculture=TRUE
+#incl_CHN=TRUE
+#percent_capture=TRUE
 
 
 ts_production_by_source <- function(tidy_fish,
